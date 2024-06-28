@@ -1,203 +1,220 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../../api/axiosInstance";
+import { useUser } from "../../context/UserContext";
 
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
+// @mui material 组件
 import Grid from "@mui/material/Grid";
-import Divider from "@mui/material/Divider";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 
-// @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import InstagramIcon from "@mui/icons-material/Instagram";
-
-// Material Dashboard 2 React components
+// 画廊管理系统组件
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-// Material Dashboard 2 React example components
+// 画廊管理系统示例组件
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ProfileInfoCard from "examples/Cards/InfoCards/ProfileInfoCard";
-import ProfilesList from "examples/Lists/ProfilesList";
 import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
 
-// Overview page components
+// 概览页面组件
 import Header from "layouts/profile/components/Header";
-import PlatformSettings from "layouts/profile/components/PlatformSettings";
 
-// Data
-import profilesListData from "layouts/profile/data/profilesListData";
+function Profile() {
+  const { user } = useUser();
+  const [artworks, setArtworks] = useState([]);
+  const [bio, setBio] = useState("");
+  const [honors, setHonors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editBioOpen, setEditBioOpen] = useState(false);
+  const [editHonorsOpen, setEditHonorsOpen] = useState(false);
+  const [editBio, setEditBio] = useState("");
+  const [editHonors, setEditHonors] = useState("");
 
-// Images
-import homeDecor1 from "assets/images/home-decor-1.jpg";
-import homeDecor2 from "assets/images/home-decor-2.jpg";
-import homeDecor3 from "assets/images/home-decor-3.jpg";
-import homeDecor4 from "assets/images/home-decor-4.jpeg";
-import team1 from "assets/images/team-1.jpg";
-import team2 from "assets/images/team-2.jpg";
-import team3 from "assets/images/team-3.jpg";
-import team4 from "assets/images/team-4.jpg";
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const artworkResponse = await axiosInstance.get(`/artworks/artist/${user._id}`);
+        setArtworks(artworkResponse.data);
 
-function Overview() {
+        const profileResponse = await axiosInstance.get(`/artists/${user._id}`);
+        setBio(profileResponse.data.bio);
+        setHonors(profileResponse.data.honors || []);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch profile data:", error);
+      }
+    };
+
+    if (user && user._id) {
+      fetchProfileData();
+    }
+  }, [user]);
+
+  const handleEditBio = () => {
+    setEditBio(bio);
+    setEditBioOpen(true);
+  };
+
+  const handleEditHonors = () => {
+    setEditHonors(honors.join("\n"));
+    setEditHonorsOpen(true);
+  };
+
+  const handleSaveBio = async () => {
+    try {
+      const response = await axiosInstance.put(`/artists/${user._id}`, { bio: editBio });
+      setBio(response.data.bio);
+      setEditBioOpen(false);
+    } catch (error) {
+      console.error("Failed to save bio:", error);
+    }
+  };
+
+  const handleSaveHonors = async () => {
+    try {
+      const updatedHonors = editHonors.split("\n").filter((honor) => honor.trim() !== "");
+      const response = await axiosInstance.put(`/artists/${user._id}`, { honors: updatedHonors });
+      setHonors(response.data.honors);
+      setEditHonorsOpen(false);
+    } catch (error) {
+      console.error("Failed to save honors:", error);
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox mb={2} />
-      <Header>
-        <MDBox mt={5} mb={3}>
-          <Grid container spacing={1}>
-            <Grid item xs={12} md={6} xl={4}>
-              <PlatformSettings />
-            </Grid>
-            <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
-              <Divider orientation="vertical" sx={{ ml: -2, mr: 1 }} />
-              <ProfileInfoCard
-                title="profile information"
-                description="Hi, I’m Alec Thompson, Decisions: If you can’t decide, the answer is no. If two equally difficult paths, choose the one more painful in the short term (pain avoidance is creating an illusion of equality)."
-                info={{
-                  fullName: "Alec M. Thompson",
-                  mobile: "(44) 123 1234 123",
-                  email: "alecthompson@mail.com",
-                  location: "USA",
-                }}
-                social={[
-                  {
-                    link: "https://www.facebook.com/CreativeTim/",
-                    icon: <FacebookIcon />,
-                    color: "facebook",
-                  },
-                  {
-                    link: "https://twitter.com/creativetim",
-                    icon: <TwitterIcon />,
-                    color: "twitter",
-                  },
-                  {
-                    link: "https://www.instagram.com/creativetimofficial/",
-                    icon: <InstagramIcon />,
-                    color: "instagram",
-                  },
-                ]}
-                action={{ route: "", tooltip: "Edit Profile" }}
-                shadow={false}
-              />
-              <Divider orientation="vertical" sx={{ mx: 0 }} />
-            </Grid>
-            <Grid item xs={12} xl={4}>
-              <ProfilesList title="conversations" profiles={profilesListData} shadow={false} />
-            </Grid>
-          </Grid>
-        </MDBox>
-        <MDBox pt={2} px={2} lineHeight={1.25}>
-          <MDTypography variant="h6" fontWeight="medium">
-            Projects
+      <Header />
+      <MDBox pt={2} px={2} lineHeight={1.25}>
+        <MDTypography variant="h6" fontWeight="medium">
+          个人简介
+          <Button onClick={handleEditBio} style={{ marginLeft: "1rem" }}>
+            编辑
+          </Button>
+        </MDTypography>
+        <MDBox mb={1}>
+          <MDTypography variant="body1" color="text">
+            {bio || "暂无简介"}
           </MDTypography>
-          <MDBox mb={1}>
-            <MDTypography variant="button" color="text">
-              Architects design houses
+        </MDBox>
+      </MDBox>
+      <MDBox pt={2} px={2} lineHeight={1.25}>
+        <MDTypography variant="h6" fontWeight="medium">
+          荣誉
+          <Button onClick={handleEditHonors} style={{ marginLeft: "1rem" }}>
+            编辑
+          </Button>
+        </MDTypography>
+        <MDBox mb={1}>
+          {honors.length > 0 ? (
+            honors.map((honor, index) => (
+              <MDTypography variant="body1" color="text" key={index}>
+                {honor}
+              </MDTypography>
+            ))
+          ) : (
+            <MDTypography variant="body1" color="text">
+              暂无荣誉
             </MDTypography>
-          </MDBox>
+          )}
         </MDBox>
-        <MDBox p={2}>
+      </MDBox>
+      <MDBox pt={2} px={2} lineHeight={1.25}>
+        <MDTypography variant="h6" fontWeight="medium">
+          作品
+        </MDTypography>
+        <MDBox mb={1}>
+          <MDTypography variant="button" color="text">
+            画家作品
+          </MDTypography>
+        </MDBox>
+      </MDBox>
+      <MDBox p={2}>
+        {loading ? (
+          <MDTypography variant="body1" color="text">
+            加载中...
+          </MDTypography>
+        ) : (
           <Grid container spacing={6}>
-            <Grid item xs={12} md={6} xl={3}>
-              <DefaultProjectCard
-                image={homeDecor1}
-                label="project #2"
-                title="modern"
-                description="As Uber works through a huge amount of internal management turmoil."
-                action={{
-                  type: "internal",
-                  route: "/pages/profile/profile-overview",
-                  color: "info",
-                  label: "view project",
-                }}
-                authors={[
-                  { image: team1, name: "Elena Morison" },
-                  { image: team2, name: "Ryan Milly" },
-                  { image: team3, name: "Nick Daniel" },
-                  { image: team4, name: "Peterson" },
-                ]}
-              />
-            </Grid>
-            <Grid item xs={12} md={6} xl={3}>
-              <DefaultProjectCard
-                image={homeDecor2}
-                label="project #1"
-                title="scandinavian"
-                description="Music is something that everyone has their own specific opinion about."
-                action={{
-                  type: "internal",
-                  route: "/pages/profile/profile-overview",
-                  color: "info",
-                  label: "view project",
-                }}
-                authors={[
-                  { image: team3, name: "Nick Daniel" },
-                  { image: team4, name: "Peterson" },
-                  { image: team1, name: "Elena Morison" },
-                  { image: team2, name: "Ryan Milly" },
-                ]}
-              />
-            </Grid>
-            <Grid item xs={12} md={6} xl={3}>
-              <DefaultProjectCard
-                image={homeDecor3}
-                label="project #3"
-                title="minimalist"
-                description="Different people have different taste, and various types of music."
-                action={{
-                  type: "internal",
-                  route: "/pages/profile/profile-overview",
-                  color: "info",
-                  label: "view project",
-                }}
-                authors={[
-                  { image: team4, name: "Peterson" },
-                  { image: team3, name: "Nick Daniel" },
-                  { image: team2, name: "Ryan Milly" },
-                  { image: team1, name: "Elena Morison" },
-                ]}
-              />
-            </Grid>
-            <Grid item xs={12} md={6} xl={3}>
-              <DefaultProjectCard
-                image={homeDecor4}
-                label="project #4"
-                title="gothic"
-                description="Why would anyone pick blue over pink? Pink is obviously a better color."
-                action={{
-                  type: "internal",
-                  route: "/pages/profile/profile-overview",
-                  color: "info",
-                  label: "view project",
-                }}
-                authors={[
-                  { image: team4, name: "Peterson" },
-                  { image: team3, name: "Nick Daniel" },
-                  { image: team2, name: "Ryan Milly" },
-                  { image: team1, name: "Elena Morison" },
-                ]}
-              />
-            </Grid>
+            {artworks.slice(0, 4).map((artwork) => (
+              <Grid item xs={12} md={6} xl={3} key={artwork._id}>
+                <DefaultProjectCard
+                  image={artwork.imageUrl}
+                  label="作品"
+                  title={artwork.title}
+                  description={artwork.description}
+                  imageStyles={{
+                    objectFit: "contain",
+                    objectPosition: "center center",
+                    height: "100%",
+                    width: "100%",
+                  }}
+                />
+              </Grid>
+            ))}
           </Grid>
-        </MDBox>
-      </Header>
+        )}
+      </MDBox>
       <Footer />
+      <Dialog open={editBioOpen} onClose={() => setEditBioOpen(false)}>
+        <DialogTitle>编辑个人简介</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="bio"
+            label="个人简介"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={editBio}
+            onChange={(e) => setEditBio(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditBioOpen(false)} color="primary">
+            取消
+          </Button>
+          <Button onClick={handleSaveBio} color="primary">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={editHonorsOpen} onClose={() => setEditHonorsOpen(false)}>
+        <DialogTitle>编辑荣誉</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="honors"
+            label="荣誉"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={editHonors}
+            onChange={(e) => setEditHonors(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditHonorsOpen(false)} color="primary">
+            取消
+          </Button>
+          <Button onClick={handleSaveHonors} color="primary">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }
 
-export default Overview;
+export default Profile;

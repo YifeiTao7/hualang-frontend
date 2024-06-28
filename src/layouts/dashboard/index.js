@@ -1,42 +1,62 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
+import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-
-// Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
-
-// Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
-// Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
+import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
+import axiosInstance from "api/axiosInstance";
+import { useUser } from "context/UserContext";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const [artists, setArtists] = useState([]);
+  const [exhibitions, setExhibitions] = useState([]); // 新增状态
+  const [signedArtistsCount, setSignedArtistsCount] = useState(0);
+  const { user } = useUser();
+
+  const fetchArtists = async () => {
+    try {
+      if (user && user._id) {
+        const response = await axiosInstance.get(`/artists/company/${user._id}`);
+        const updatedArtists = response.data.map((artist) => ({
+          ...artist,
+          artworks: artist.artworks.map((artwork) => ({
+            id: artwork,
+            title: `Artwork ${artwork}`,
+          })),
+        }));
+        setArtists(updatedArtists);
+        setSignedArtistsCount(updatedArtists.length);
+      }
+    } catch (error) {
+      console.error("Failed to fetch artists:", error);
+    }
+  };
+
+  const fetchExhibitions = async () => {
+    try {
+      if (user && user._id) {
+        const response = await axiosInstance.get(`/exhibitions/company/${user._id}`);
+        setExhibitions(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch exhibitions:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user && user._id) {
+      fetchArtists();
+      fetchExhibitions();
+    }
+  }, [user]);
 
   return (
     <DashboardLayout>
@@ -47,13 +67,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon="weekend"
-                title="Bookings"
-                count={281}
+                icon="event"
+                title="展会"
+                count={exhibitions.length} // 使用动态数据
                 percentage={{
                   color: "success",
-                  amount: "+55%",
-                  label: "than lask week",
+                  amount: "+10%",
+                  label: "相比上周",
                 }}
               />
             </MDBox>
@@ -61,13 +81,13 @@ function Dashboard() {
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                icon="leaderboard"
-                title="Today's Users"
-                count="2,300"
+                icon="brush"
+                title="画师进度"
+                count="5个项目"
                 percentage={{
                   color: "success",
-                  amount: "+3%",
-                  label: "than last month",
+                  amount: "+20%",
+                  label: "相比上个月",
                 }}
               />
             </MDBox>
@@ -76,13 +96,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="store"
-                title="Revenue"
-                count="34k"
+                icon="person"
+                title="签约画师"
+                count={`${signedArtistsCount}名`} // 使用动态数据
                 percentage={{
                   color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
+                  amount: "+5%",
+                  label: "相比昨天",
                 }}
               />
             </MDBox>
@@ -92,12 +112,12 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="primary"
                 icon="person_add"
-                title="Followers"
-                count="+91"
+                title="添加新画师"
+                count="+2名"
                 percentage={{
                   color: "success",
                   amount: "",
-                  label: "Just updated",
+                  label: "刚刚更新",
                 }}
               />
             </MDBox>
@@ -109,9 +129,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
+                  title="展会参与度"
+                  description="上次展会表现"
+                  date="展会在2天前结束"
                   chart={reportsBarChartData}
                 />
               </MDBox>
@@ -120,13 +140,13 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="daily sales"
+                  title="画师项目进度"
                   description={
                     <>
-                      (<strong>+15%</strong>) increase in today sales.
+                      (<strong>+15%</strong>) 进度提升.
                     </>
                   }
-                  date="updated 4 min ago"
+                  date="4分钟前更新"
                   chart={sales}
                 />
               </MDBox>
@@ -135,9 +155,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
+                  title="签约画师情况"
+                  description="最新签约数据"
+                  date="刚刚更新"
                   chart={tasks}
                 />
               </MDBox>
@@ -147,10 +167,14 @@ function Dashboard() {
         <MDBox>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={8}>
-              <Projects />
+              <Projects
+                title="签约画师项目"
+                initialArtists={artists}
+                onArtistsUpdated={fetchArtists}
+              />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
+              <OrdersOverview title="画师订单概览" companyId={user._id} />
             </Grid>
           </Grid>
         </MDBox>

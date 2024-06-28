@@ -1,19 +1,59 @@
-// @mui material components
+import React, { useState } from "react";
 import Card from "@mui/material/Card";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
-// Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-// Images
 import bgImage from "assets/images/s591529137db2e.jpg";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "api/axiosInstance";
 
 function ResetPassword() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [step, setStep] = useState(1);
+
+  const handleRequestReset = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axiosInstance.post("/password-reset/request", { email });
+      setMessage(response.data.message);
+      setStep(2);
+    } catch (error) {
+      setMessage("请求重置密码时出错，请稍后再试。");
+    }
+  };
+
+  const handleVerifyCode = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axiosInstance.post("/password-reset/verify-code", { email, code });
+      setMessage(response.data.message);
+      setStep(3);
+    } catch (error) {
+      setMessage("验证码验证失败，请检查后重试。");
+    }
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axiosInstance.post("/password-reset/reset", {
+        email,
+        code,
+        newPassword,
+      });
+      setMessage(response.data.message);
+      setStep(4);
+    } catch (error) {
+      setMessage("重置密码时出错，请稍后再试。");
+    }
+  };
+
   return (
     <CoverLayout coverHeight="50vh" image={bgImage}>
       <Card>
@@ -36,16 +76,90 @@ function ResetPassword() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
-            <MDBox mb={4}>
-              <MDInput type="email" label="邮箱" variant="standard" fullWidth />
-            </MDBox>
-            <MDBox mt={6} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                重置
+          {step === 1 && (
+            <form onSubmit={handleRequestReset}>
+              <MDBox mb={4}>
+                <MDInput
+                  type="email"
+                  label="邮箱"
+                  variant="standard"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </MDBox>
+              <MDBox mt={6} mb={1}>
+                <MDButton type="submit" variant="gradient" color="info" fullWidth>
+                  请求重置
+                </MDButton>
+              </MDBox>
+            </form>
+          )}
+          {step === 2 && (
+            <form onSubmit={handleVerifyCode}>
+              <MDBox mb={4}>
+                <MDInput
+                  type="text"
+                  label="验证码"
+                  variant="standard"
+                  fullWidth
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </MDBox>
+              <MDBox mt={6} mb={1}>
+                <MDButton type="submit" variant="gradient" color="info" fullWidth>
+                  验证
+                </MDButton>
+              </MDBox>
+            </form>
+          )}
+          {step === 3 && (
+            <form onSubmit={handleResetPassword}>
+              <MDBox mb={4}>
+                <MDInput
+                  type="password"
+                  label="新密码"
+                  variant="standard"
+                  fullWidth
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </MDBox>
+              <MDBox mt={6} mb={1}>
+                <MDButton type="submit" variant="gradient" color="info" fullWidth>
+                  重置密码
+                </MDButton>
+              </MDBox>
+            </form>
+          )}
+          {step === 4 && (
+            <MDBox mt={2} mb={1} textAlign="center">
+              <MDTypography variant="body2" color="success">
+                {message}
+              </MDTypography>
+              <MDButton
+                variant="outlined"
+                color="primary"
+                fullWidth
+                onClick={() => navigate("/login")}
+              >
+                登录
               </MDButton>
             </MDBox>
+          )}
+          <MDBox mt={2} mb={1}>
+            <MDButton variant="outlined" color="secondary" fullWidth onClick={() => navigate(-1)}>
+              回退
+            </MDButton>
           </MDBox>
+          {message && (
+            <MDBox mt={2} mb={1} textAlign="center">
+              <MDTypography variant="body2" color="error">
+                {message}
+              </MDTypography>
+            </MDBox>
+          )}
         </MDBox>
       </Card>
     </CoverLayout>

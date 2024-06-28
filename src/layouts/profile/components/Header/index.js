@@ -1,68 +1,141 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import { useState, useEffect } from "react";
-
-// prop-types is a library for typechecking of props.
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import axiosInstance from "../../../../api/axiosInstance";
+import { useUser } from "../../../../context/UserContext";
 
-// @mui material components
-import Card from "@mui/material/Card";
+// @mui material 组件
 import Grid from "@mui/material/Grid";
-import AppBar from "@mui/material/AppBar";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
+import Card from "@mui/material/Card";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Icon from "@mui/material/Icon";
+import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 
-// Material Dashboard 2 React components
+// 画廊管理系统组件
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDAvatar from "components/MDAvatar";
 
-// Material Dashboard 2 React base styles
-import breakpoints from "assets/theme/base/breakpoints";
+// 图片
+import backgroundImage from "assets/images/s591529137db2e.jpg";
+import defaultAvatar from "assets/images/default_avatar.jpg"; // 导入默认头像
 
-// Images
-import burceMars from "assets/images/bruce-mars.jpg";
-import backgroundImage from "assets/images/bg-profile.jpeg";
-
-function Header({ children }) {
-  const [tabsOrientation, setTabsOrientation] = useState("horizontal");
-  const [tabValue, setTabValue] = useState(0);
+function Header() {
+  const { user } = useUser();
+  const [artistInfo, setArtistInfo] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    weChat: "",
+    qq: "",
+    company: "", // 初始化为字符串以避免初始渲染错误
+    avatar: "", // 添加 avatar 属性
+  });
+  const [companyName, setCompanyName] = useState(""); // 添加公司名字状态
+  const [editOpen, setEditOpen] = useState(false);
+  const [editAvatarOpen, setEditAvatarOpen] = useState(false); // 添加状态来控制头像编辑对话框
+  const [editValues, setEditValues] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    weChat: "",
+    qq: "",
+    company: "",
+  });
+  const [newAvatar, setNewAvatar] = useState(null); // 添加状态来保存新头像
 
   useEffect(() => {
-    // A function that sets the orientation state of the tabs.
-    function handleTabsOrientation() {
-      return window.innerWidth < breakpoints.values.sm
-        ? setTabsOrientation("vertical")
-        : setTabsOrientation("horizontal");
+    const fetchArtistInfo = async () => {
+      try {
+        const response = await axiosInstance.get(`/artists/${user._id}`);
+        setArtistInfo(response.data);
+        if (response.data.company) {
+          fetchCompanyName(response.data.company);
+        }
+      } catch (error) {
+        console.error("Failed to fetch artist info:", error);
+      }
+    };
+
+    const fetchCompanyName = async (companyId) => {
+      try {
+        const response = await axiosInstance.get(`/companies/${companyId}`);
+        setCompanyName(response.data.name);
+      } catch (error) {
+        console.error("Failed to fetch company name:", error);
+      }
+    };
+
+    if (user && user._id) {
+      fetchArtistInfo();
     }
+  }, [user]);
 
-    /** 
-     The event listener that's calling the handleTabsOrientation function when resizing the window.
-    */
-    window.addEventListener("resize", handleTabsOrientation);
+  const handleEditProfile = () => {
+    setEditValues(artistInfo);
+    setEditOpen(true);
+  };
 
-    // Call the handleTabsOrientation function to set the state with the initial value.
-    handleTabsOrientation();
+  const handleEditAvatar = () => {
+    setEditAvatarOpen(true);
+  };
 
-    // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleTabsOrientation);
-  }, [tabsOrientation]);
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+  };
 
-  const handleSetTabValue = (event, newValue) => setTabValue(newValue);
+  const handleCloseAvatarEdit = () => {
+    setEditAvatarOpen(false);
+  };
+
+  const handleChange = (e) => {
+    setEditValues({
+      ...editValues,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleAvatarChange = (e) => {
+    setNewAvatar(e.target.files[0]);
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await axiosInstance.put(`/artists/${user._id}`, editValues);
+      setArtistInfo(response.data);
+      setEditOpen(false);
+    } catch (error) {
+      console.error("Failed to save artist info:", error);
+    }
+  };
+
+  const handleSaveAvatar = async () => {
+    if (newAvatar) {
+      const formData = new FormData();
+      formData.append("avatar", newAvatar);
+
+      try {
+        const response = await axiosInstance.put(`/artists/${user._id}/avatar`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        setArtistInfo({
+          ...artistInfo,
+          avatar: `${response.data.avatar}?t=${new Date().getTime()}`, // 添加随机参数
+        });
+        setEditAvatarOpen(false);
+      } catch (error) {
+        console.error("Failed to upload avatar:", error);
+      }
+    }
+  };
 
   return (
     <MDBox position="relative" mb={5}>
@@ -73,11 +146,7 @@ function Header({ children }) {
         minHeight="18.75rem"
         borderRadius="xl"
         sx={{
-          backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
-            `${linearGradient(
-              rgba(gradients.info.main, 0.6),
-              rgba(gradients.info.state, 0.6)
-            )}, url(${backgroundImage})`,
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "50%",
           overflow: "hidden",
@@ -92,63 +161,171 @@ function Header({ children }) {
           px: 2,
         }}
       >
-        <Grid container spacing={3} alignItems="center">
+        <Grid container alignItems="center" justifyContent="center">
           <Grid item>
-            <MDAvatar src={burceMars} alt="profile-image" size="xl" shadow="sm" />
+            <MDAvatar
+              src={artistInfo.avatar || defaultAvatar} // 使用默认头像
+              alt="profile-image"
+              size="xl"
+              shadow="sm"
+              sx={{ marginRight: 2, cursor: "pointer" }}
+              onClick={handleEditAvatar} // 添加点击事件来编辑头像
+            />
           </Grid>
           <Grid item>
-            <MDBox height="100%" mt={0.5} lineHeight={1}>
-              <MDTypography variant="h5" fontWeight="medium">
-                Richard Davis
-              </MDTypography>
-              <MDTypography variant="button" color="text" fontWeight="regular">
-                CEO / Co-Founder
-              </MDTypography>
+            <MDTypography variant="h4" fontWeight="medium">
+              {artistInfo.name || "无名"}
+            </MDTypography>
+          </Grid>
+          <Grid item xs>
+            <MDBox height="100%" lineHeight={1} sx={{ textAlign: "center" }}>
+              <Grid container spacing={3} justifyContent="center">
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    邮箱: {artistInfo.email || "无"}
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    电话: {artistInfo.phone || "无"}
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    地址: {artistInfo.address || "无"}
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    微信: {artistInfo.weChat || "无"}
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    QQ: {artistInfo.qq || "无"}
+                  </MDTypography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <MDTypography variant="h6" color="text" fontWeight="regular">
+                    公司: {companyName || "无"}
+                  </MDTypography>
+                </Grid>
+              </Grid>
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4} sx={{ ml: "auto" }}>
-            <AppBar position="static">
-              <Tabs orientation={tabsOrientation} value={tabValue} onChange={handleSetTabValue}>
-                <Tab
-                  label="App"
-                  icon={
-                    <Icon fontSize="small" sx={{ mt: -0.25 }}>
-                      home
-                    </Icon>
-                  }
-                />
-                <Tab
-                  label="Message"
-                  icon={
-                    <Icon fontSize="small" sx={{ mt: -0.25 }}>
-                      email
-                    </Icon>
-                  }
-                />
-                <Tab
-                  label="Settings"
-                  icon={
-                    <Icon fontSize="small" sx={{ mt: -0.25 }}>
-                      settings
-                    </Icon>
-                  }
-                />
-              </Tabs>
-            </AppBar>
+          <Grid item>
+            <Tooltip title="编辑资料" placement="top">
+              <Icon
+                onClick={handleEditProfile}
+                style={{ cursor: "pointer" }}
+                fontSize="small"
+                color="text"
+              >
+                edit
+              </Icon>
+            </Tooltip>
           </Grid>
         </Grid>
-        {children}
       </Card>
+      <Dialog open={editOpen} onClose={handleCloseEdit}>
+        <DialogTitle>编辑个人资料</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="姓名"
+            type="text"
+            fullWidth
+            value={editValues.name}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="email"
+            label="邮箱"
+            type="email"
+            fullWidth
+            value={editValues.email}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="phone"
+            label="电话"
+            type="text"
+            fullWidth
+            value={editValues.phone}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="address"
+            label="地址"
+            type="text"
+            fullWidth
+            value={editValues.address}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="weChat"
+            label="微信"
+            type="text"
+            fullWidth
+            value={editValues.weChat}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="qq"
+            label="QQ"
+            type="text"
+            fullWidth
+            value={editValues.qq}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="company"
+            label="公司"
+            type="text"
+            fullWidth
+            value={editValues.company}
+            onChange={handleChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEdit} color="primary">
+            取消
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={editAvatarOpen} onClose={handleCloseAvatarEdit}>
+        <DialogTitle>上传头像</DialogTitle>
+        <DialogContent>
+          <input type="file" accept="image/*" onChange={handleAvatarChange} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAvatarEdit} color="primary">
+            取消
+          </Button>
+          <Button onClick={handleSaveAvatar} color="primary">
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MDBox>
   );
 }
 
-// Setting default props for the Header
-Header.defaultProps = {
-  children: "",
-};
+// 设置 Header 的默认属性
+Header.defaultProps = {};
 
-// Typechecking props for the Header
+// 类型检查 props
 Header.propTypes = {
   children: PropTypes.node,
 };

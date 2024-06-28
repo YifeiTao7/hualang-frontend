@@ -14,6 +14,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
+import MDAlert from "components/MDAlert"; // 导入 MDAlert 组件
 
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
@@ -26,6 +27,7 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [error, setError] = useState(""); // 定义 error 状态变量
   const navigate = useNavigate();
 
   const handleRoleChange = (event) => {
@@ -34,12 +36,15 @@ function SignUp() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
+    setError(""); // 清除之前的错误消息
 
     try {
       await axiosInstance.post("/auth/register", { name, email, password, role });
       navigate("/authentication/sign-in");
     } catch (error) {
-      console.error("Registration failed:", error);
+      const errorMessage = error.response?.data?.message || "注册失败，请检查输入的信息。";
+      setError(errorMessage);
+      console.error("Registration failed:", errorMessage);
     }
   };
 
@@ -105,6 +110,13 @@ function SignUp() {
                 <MenuItem value="company">公司</MenuItem>
               </Select>
             </MDBox>
+            {error && (
+              <MDBox mt={2} mb={2}>
+                <MDAlert color="error" sx={{ fontSize: 14 }}>
+                  {error}
+                </MDAlert>
+              </MDBox>
+            )}
             <MDBox mt={4} mb={1}>
               <MDButton type="submit" variant="gradient" color="info" fullWidth>
                 注册

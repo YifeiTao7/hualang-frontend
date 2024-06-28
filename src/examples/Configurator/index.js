@@ -1,18 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 import { useState, useEffect } from "react";
 
 // react-github-btn
@@ -138,9 +123,9 @@ function Configurator() {
         px={3}
       >
         <MDBox>
-          <MDTypography variant="h5">Material UI Configurator</MDTypography>
+          <MDTypography variant="h5">自定义界面</MDTypography>
           <MDTypography variant="body2" color="text">
-            See our dashboard options.
+            设置您的自定义管理界面。
           </MDTypography>
         </MDBox>
 
@@ -163,7 +148,7 @@ function Configurator() {
 
       <MDBox pt={0.5} pb={3} px={3}>
         <MDBox>
-          <MDTypography variant="h6">Sidenav Colors</MDTypography>
+          <MDTypography variant="h6">侧边栏颜色</MDTypography>
 
           <MDBox mb={0.5}>
             {sidenavColors.map((color) => (
@@ -209,9 +194,9 @@ function Configurator() {
         </MDBox>
 
         <MDBox mt={3} lineHeight={1}>
-          <MDTypography variant="h6">Sidenav Type</MDTypography>
+          <MDTypography variant="h6">侧边栏类型</MDTypography>
           <MDTypography variant="button" color="text">
-            Choose between different sidenav types.
+            选择不同的侧边栏类型。
           </MDTypography>
 
           <MDBox
@@ -233,7 +218,7 @@ function Configurator() {
                   : sidenavTypeButtonsStyles
               }
             >
-              Dark
+              暗色
             </MDButton>
             <MDBox sx={{ mx: 1, width: "8rem", minWidth: "8rem" }}>
               <MDButton
@@ -248,7 +233,7 @@ function Configurator() {
                     : sidenavTypeButtonsStyles
                 }
               >
-                Transparent
+                透明
               </MDButton>
             </MDBox>
             <MDButton
@@ -263,7 +248,7 @@ function Configurator() {
                   : sidenavTypeButtonsStyles
               }
             >
-              White
+              白色
             </MDButton>
           </MDBox>
         </MDBox>
@@ -274,13 +259,13 @@ function Configurator() {
           mt={3}
           lineHeight={1}
         >
-          <MDTypography variant="h6">Navbar Fixed</MDTypography>
+          <MDTypography variant="h6">固定导航栏</MDTypography>
 
           <Switch checked={fixedNavbar} onChange={handleFixedNavbar} />
         </MDBox>
         <Divider />
         <MDBox display="flex" justifyContent="space-between" alignItems="center" lineHeight={1}>
-          <MDTypography variant="h6">Light / Dark</MDTypography>
+          <MDTypography variant="h6">浅色 / 深色</MDTypography>
 
           <Switch checked={darkMode} onChange={handleDarkMode} />
         </MDBox>
@@ -295,7 +280,7 @@ function Configurator() {
             variant="outlined"
             fullWidth
           >
-            view documentation
+            查看文档
           </MDButton>
         </MDBox>
         <MDBox display="flex" justifyContent="center">
@@ -311,7 +296,7 @@ function Configurator() {
         </MDBox>
         <MDBox mt={2} textAlign="center">
           <MDBox mb={0.5}>
-            <MDTypography variant="h6">Thank you for sharing!</MDTypography>
+            <MDTypography variant="h6">感谢您的分享！</MDTypography>
           </MDBox>
 
           <MDBox display="flex" justifyContent="center">
@@ -324,7 +309,7 @@ function Configurator() {
                 color="dark"
               >
                 <TwitterIcon />
-                &nbsp; Tweet
+                &nbsp; 推特
               </MDButton>
             </MDBox>
             <MDButton
@@ -335,7 +320,7 @@ function Configurator() {
               color="dark"
             >
               <FacebookIcon />
-              &nbsp; Share
+              &nbsp; 分享
             </MDButton>
           </MDBox>
         </MDBox>

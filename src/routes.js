@@ -1,61 +1,21 @@
-// Material Dashboard 2 React layouts
-import Dashboard from "layouts/dashboard";
-import Tables from "layouts/tables";
-import Billing from "layouts/billing";
-import RTL from "layouts/rtl";
-import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
+import ViewArtistProfile from "layouts/ViewArtistProfile";
+import ArtistTables from "layouts/tables/ArtistTables";
+import CompanyTables from "layouts/tables/CompanyTables";
+import ResetPassword from "layouts/authentication/reset-password/cover";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-import ResetPassword from "layouts/authentication/reset-password/cover";
+import Dashboard from "layouts/dashboard";
+import Billing from "layouts/billing";
+import Notifications from "layouts/notifications";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
+export const artistRoutes = [
   {
     type: "collapse",
-    name: "Dashboard",
-    key: "dashboard",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
-  },
-  {
-    type: "collapse",
-    name: "Tables",
-    key: "tables",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    component: <Tables />,
-  },
-  {
-    type: "collapse",
-    name: "Billing",
-    key: "billing",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/billing",
-    component: <Billing />,
-  },
-  {
-    type: "collapse",
-    name: "RTL",
-    key: "rtl",
-    icon: <Icon fontSize="small">format_textdirection_r_to_l</Icon>,
-    route: "/rtl",
-    component: <RTL />,
-  },
-  {
-    type: "collapse",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    component: <Notifications />,
-  },
-  {
-    type: "collapse",
-    name: "Profile",
+    name: "个人资料",
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
@@ -63,7 +23,23 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Sign In",
+    name: "作品集",
+    key: "artist-tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/artist-tables",
+    component: <ArtistTables />,
+  },
+  {
+    type: "collapse",
+    name: "重置密码",
+    key: "reset-password",
+    icon: <Icon fontSize="small">lock_reset</Icon>,
+    route: "/authentication/reset-password",
+    component: <ResetPassword />,
+  },
+  {
+    type: "collapse",
+    name: "登出",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
@@ -71,20 +47,53 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Sign Up",
+    name: "注册",
     key: "sign-up",
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
+];
+
+export const companyRoutes = [
   {
     type: "collapse",
-    name: "Reset Password",
+    name: "管理",
+    key: "dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/dashboard",
+    component: <Dashboard />,
+  },
+  {
+    type: "collapse",
+    name: "签约作品库",
+    key: "company-tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/company-tables",
+    component: <CompanyTables />,
+  },
+  {
+    type: "collapse",
+    name: "重置密码",
     key: "reset-password",
     icon: <Icon fontSize="small">lock_reset</Icon>,
     route: "/authentication/reset-password",
     component: <ResetPassword />,
   },
+  {
+    type: "collapse",
+    name: "登出",
+    key: "sign-in",
+    icon: <Icon fontSize="small">login</Icon>,
+    route: "/authentication/sign-in",
+    component: <SignIn />,
+  },
+  {
+    type: "collapse",
+    name: "注册",
+    key: "sign-up",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/authentication/sign-up",
+    component: <SignUp />,
+  },
 ];
-
-export default routes;
