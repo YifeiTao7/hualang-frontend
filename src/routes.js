@@ -8,6 +8,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Dashboard from "layouts/dashboard";
 import Billing from "layouts/billing";
 import Notifications from "layouts/notifications";
+import ExhibitionPage from "layouts/ExhibitionPage";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -74,12 +75,21 @@ export const companyRoutes = [
   },
   {
     type: "collapse",
+    name: "展会",
+    key: "exhibitions",
+    icon: <Icon fontSize="small">event</Icon>,
+    route: "/exhibitions",
+    component: <ExhibitionPage />,
+  },
+  {
+    type: "collapse",
     name: "重置密码",
     key: "reset-password",
     icon: <Icon fontSize="small">lock_reset</Icon>,
     route: "/authentication/reset-password",
     component: <ResetPassword />,
   },
+
   {
     type: "collapse",
     name: "登出",

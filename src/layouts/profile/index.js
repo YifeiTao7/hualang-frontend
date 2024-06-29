@@ -28,12 +28,9 @@ function Profile() {
   const { user } = useUser();
   const [artworks, setArtworks] = useState([]);
   const [bio, setBio] = useState("");
-  const [honors, setHonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editBioOpen, setEditBioOpen] = useState(false);
-  const [editHonorsOpen, setEditHonorsOpen] = useState(false);
   const [editBio, setEditBio] = useState("");
-  const [editHonors, setEditHonors] = useState("");
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -43,7 +40,6 @@ function Profile() {
 
         const profileResponse = await axiosInstance.get(`/artists/${user._id}`);
         setBio(profileResponse.data.bio);
-        setHonors(profileResponse.data.honors || []);
 
         setLoading(false);
       } catch (error) {
@@ -61,11 +57,6 @@ function Profile() {
     setEditBioOpen(true);
   };
 
-  const handleEditHonors = () => {
-    setEditHonors(honors.join("\n"));
-    setEditHonorsOpen(true);
-  };
-
   const handleSaveBio = async () => {
     try {
       const response = await axiosInstance.put(`/artists/${user._id}`, { bio: editBio });
@@ -76,55 +67,29 @@ function Profile() {
     }
   };
 
-  const handleSaveHonors = async () => {
-    try {
-      const updatedHonors = editHonors.split("\n").filter((honor) => honor.trim() !== "");
-      const response = await axiosInstance.put(`/artists/${user._id}`, { honors: updatedHonors });
-      setHonors(response.data.honors);
-      setEditHonorsOpen(false);
-    } catch (error) {
-      console.error("Failed to save honors:", error);
-    }
-  };
-
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox mb={2} />
       <Header />
       <MDBox pt={2} px={2} lineHeight={1.25}>
-        <MDTypography variant="h6" fontWeight="medium">
-          个人简介
-          <Button onClick={handleEditBio} style={{ marginLeft: "1rem" }}>
-            编辑
-          </Button>
-        </MDTypography>
-        <MDBox mb={1}>
-          <MDTypography variant="body1" color="text">
-            {bio || "暂无简介"}
-          </MDTypography>
-        </MDBox>
-      </MDBox>
-      <MDBox pt={2} px={2} lineHeight={1.25}>
-        <MDTypography variant="h6" fontWeight="medium">
-          荣誉
-          <Button onClick={handleEditHonors} style={{ marginLeft: "1rem" }}>
-            编辑
-          </Button>
-        </MDTypography>
-        <MDBox mb={1}>
-          {honors.length > 0 ? (
-            honors.map((honor, index) => (
-              <MDTypography variant="body1" color="text" key={index}>
-                {honor}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <MDBox maxWidth="100%" style={{ wordBreak: "break-word", whiteSpace: "normal" }}>
+              <MDTypography variant="h6" fontWeight="medium">
+                个人简介
+                <Button onClick={handleEditBio} style={{ marginLeft: "1rem" }}>
+                  编辑
+                </Button>
               </MDTypography>
-            ))
-          ) : (
-            <MDTypography variant="body1" color="text">
-              暂无荣誉
-            </MDTypography>
-          )}
-        </MDBox>
+              <MDBox mb={1} maxWidth="100%">
+                <MDTypography variant="body1" color="text">
+                  {bio || "暂无简介"}
+                </MDTypography>
+              </MDBox>
+            </MDBox>
+          </Grid>
+        </Grid>
       </MDBox>
       <MDBox pt={2} px={2} lineHeight={1.25}>
         <MDTypography variant="h6" fontWeight="medium">
@@ -184,31 +149,6 @@ function Profile() {
             取消
           </Button>
           <Button onClick={handleSaveBio} color="primary">
-            保存
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={editHonorsOpen} onClose={() => setEditHonorsOpen(false)}>
-        <DialogTitle>编辑荣誉</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="honors"
-            label="荣誉"
-            type="text"
-            fullWidth
-            multiline
-            rows={4}
-            value={editHonors}
-            onChange={(e) => setEditHonors(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditHonorsOpen(false)} color="primary">
-            取消
-          </Button>
-          <Button onClick={handleSaveHonors} color="primary">
             保存
           </Button>
         </DialogActions>

@@ -60,6 +60,7 @@ function SubmissionForm({ onUploadSuccess }) {
     formData.append("size", size); // 确保尺寸被传递
     formData.append("file", file);
     formData.append("artistId", user ? user._id : ""); // 使用当前用户的ID
+    formData.append("artistName", user ? user.name : ""); // 添加 artistName
 
     try {
       const response = await axiosInstance.post("/upload/artwork", formData, {
