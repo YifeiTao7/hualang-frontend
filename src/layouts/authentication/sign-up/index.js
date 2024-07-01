@@ -27,6 +27,15 @@ import bgImage from "assets/images/s591529137db2e.jpg";
 const CustomSelect = styled(Select)(({ theme }) => ({
   [theme.breakpoints.down("sm")]: {
     height: "56px", // 增加小屏幕上的高度
+    padding: "10px", // 增加 padding 以提高触摸区域
+  },
+}));
+
+const CustomButton = styled(MDButton)(({ theme }) => ({
+  [theme.breakpoints.down("sm")]: {
+    height: "56px", // 增加小屏幕上的高度
+    padding: "10px", // 增加 padding 以提高触摸区域
+    fontSize: "16px", // 增加字体大小以更好适应按钮大小
   },
 }));
 
@@ -126,9 +135,9 @@ function SignUp() {
               </MDBox>
             )}
             <MDBox mt={4} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
+              <CustomButton type="submit" variant="gradient" color="info" fullWidth>
                 注册
-              </MDButton>
+              </CustomButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
