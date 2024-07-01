@@ -14,10 +14,11 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/s591529137db2e.jpg";
 
 const CustomSelect = styled(Select)(({ theme }) => ({
-  height: "56px", // 增加高度
-  padding: "10px", // 增加padding
+  height: "56px",
+  padding: "10px",
   fontSize: "16px",
-  backgroundColor: "lightyellow", // 添加背景色以确认样式问题
+  zIndex: 1000, // 确保 Select 组件在最前面
+  backgroundColor: "lightyellow",
   [theme.breakpoints.down("sm")]: {
     height: "70px",
     padding: "15px",
@@ -64,7 +65,7 @@ function SignUp() {
 
   return (
     <CoverLayout image={bgImage}>
-      <Card sx={{ maxWidth: "400px", margin: "0 auto" }}>
+      <Card sx={{ maxWidth: "400px", margin: "0 auto", position: "relative", zIndex: 1 }}>
         <MDBox
           variant="gradient"
           bgColor="info"
