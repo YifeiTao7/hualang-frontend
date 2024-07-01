@@ -28,6 +28,7 @@ const CustomSelect = styled(Select)(({ theme }) => ({
   [theme.breakpoints.down("sm")]: {
     height: "56px", // 增加小屏幕上的高度
     padding: "10px", // 增加 padding 以提高触摸区域
+    fontSize: "16px", // 增加字体大小以更好适应选择框大小
   },
 }));
 
@@ -67,7 +68,7 @@ function SignUp() {
 
   return (
     <CoverLayout image={bgImage}>
-      <Card>
+      <Card sx={{ maxWidth: "400px", margin: "0 auto" }}>
         <MDBox
           variant="gradient"
           bgColor="info"
