@@ -8,6 +8,7 @@ import Grid from "@mui/material/Grid";
 import MuiLink from "@mui/material/Link";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import { styled } from "@mui/system";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -21,6 +22,13 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 
 // Images
 import bgImage from "assets/images/s591529137db2e.jpg";
+
+// 自定义样式
+const CustomSelect = styled(Select)(({ theme }) => ({
+  [theme.breakpoints.down("sm")]: {
+    height: "56px", // 增加小屏幕上的高度
+  },
+}));
 
 function SignUp() {
   const [name, setName] = useState("");
@@ -96,7 +104,7 @@ function SignUp() {
               />
             </MDBox>
             <MDBox mb={2}>
-              <Select
+              <CustomSelect
                 value={role}
                 onChange={handleRoleChange}
                 displayEmpty
@@ -108,7 +116,7 @@ function SignUp() {
                 </MenuItem>
                 <MenuItem value="artist">画家</MenuItem>
                 <MenuItem value="company">公司</MenuItem>
-              </Select>
+              </CustomSelect>
             </MDBox>
             {error && (
               <MDBox mt={2} mb={2}>
