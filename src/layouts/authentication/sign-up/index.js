@@ -1,42 +1,38 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../../api/axiosInstance";
-
-// @mui material components
 import Card from "@mui/material/Card";
-import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/system";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-import MDAlert from "components/MDAlert"; // 导入 MDAlert 组件
-
-// Authentication layout components
+import MDAlert from "components/MDAlert";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-// Images
 import bgImage from "assets/images/s591529137db2e.jpg";
 
-// 自定义样式
 const CustomSelect = styled(Select)(({ theme }) => ({
+  height: "56px", // 增加高度
+  padding: "10px", // 增加padding
+  fontSize: "16px",
+  backgroundColor: "lightyellow", // 添加背景色以确认样式问题
   [theme.breakpoints.down("sm")]: {
-    height: "56px", // 增加小屏幕上的高度
-    padding: "10px", // 增加 padding 以提高触摸区域
-    fontSize: "16px", // 增加字体大小以更好适应选择框大小
+    height: "70px",
+    padding: "15px",
+    fontSize: "20px",
   },
 }));
 
 const CustomButton = styled(MDButton)(({ theme }) => ({
+  height: "56px",
+  padding: "10px",
+  fontSize: "16px",
   [theme.breakpoints.down("sm")]: {
-    height: "56px", // 增加小屏幕上的高度
-    padding: "10px", // 增加 padding 以提高触摸区域
-    fontSize: "16px", // 增加字体大小以更好适应按钮大小
+    height: "70px",
+    padding: "15px",
+    fontSize: "20px",
   },
 }));
 
@@ -45,7 +41,7 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const [error, setError] = useState(""); // 定义 error 状态变量
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleRoleChange = (event) => {
@@ -54,7 +50,7 @@ function SignUp() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
-    setError(""); // 清除之前的错误消息
+    setError("");
 
     try {
       await axiosInstance.post("/auth/register", { name, email, password, role });
