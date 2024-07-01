@@ -14,15 +14,13 @@ import {
   DialogActions,
   Button,
   Typography,
-  TextField,
 } from "@mui/material";
 import Icon from "@mui/material/Icon";
 
-function NotificationList({ open, onClose }) {
+function NotificationListForArtist({ open, onClose }) {
   const { user } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [newExhibitionThreshold, setNewExhibitionThreshold] = useState("");
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -44,7 +42,7 @@ function NotificationList({ open, onClose }) {
       const notification = JSON.parse(event.data);
       console.log("Received notification:", notification);
       setNotifications((prev) => [...prev, notification]);
-      setSelectedNotification(notification); // 直接弹出通知对话框
+      setSelectedNotification(notification); // 自动显示最新的通知
     };
 
     eventSource.onerror = (err) => {
@@ -63,12 +61,18 @@ function NotificationList({ open, onClose }) {
 
   const handleAccept = async () => {
     try {
-      const response = await axiosInstance.post(
-        `/notifications/${selectedNotification._id}/accept`
-      );
-      const newNotification = response.data;
+      // 接受邀请的请求
+      await axiosInstance.post(`/notifications/${selectedNotification._id}/accept`);
+
+      // 将接受邀请的通知发送给公司
+      await axiosInstance.post(`/notifications`, {
+        senderId: user._id,
+        receiverId: selectedNotification.senderId,
+        type: "alert",
+        content: `${user.name} 已接受您的邀请。`,
+      });
+
       setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
-      setNotifications((prev) => [...prev, newNotification]);
       setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to accept notification:", error);
@@ -77,43 +81,37 @@ function NotificationList({ open, onClose }) {
 
   const handleDecline = async () => {
     try {
-      const response = await axiosInstance.post(
-        `/notifications/${selectedNotification._id}/reject`
-      );
-      const newNotification = response.data;
+      // 拒绝邀请的请求
+      await axiosInstance.post(`/notifications/${selectedNotification._id}/reject`);
+
+      // 将拒绝邀请的通知发送给公司
+      await axiosInstance.post(`/notifications`, {
+        senderId: user._id,
+        receiverId: selectedNotification.senderId,
+        type: "alert",
+        content: `${user.name} 已拒绝您的邀请。`,
+      });
+
       setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
-      setNotifications((prev) => [...prev, newNotification]);
       setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to decline notification:", error);
     }
   };
 
-  const handleUpdateThreshold = async () => {
-    if (!newExhibitionThreshold) return;
+  const handleDelete = async () => {
     try {
-      await axiosInstance.put(`/artists/${selectedNotification.senderId}`, {
-        exhibitionsHeld: newExhibitionThreshold,
-      });
-      setSelectedNotification(null);
-      setNewExhibitionThreshold("");
+      // 删除通知的请求
+      await axiosInstance.delete(`/notifications/${selectedNotification._id}`);
       setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
-    } catch (error) {
-      console.error("Failed to update exhibition threshold:", error);
-    }
-  };
-
-  const handleCloseNotification = async () => {
-    try {
-      if (selectedNotification) {
-        await axiosInstance.delete(`/notifications/${selectedNotification._id}`);
-        setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
-        setSelectedNotification(null);
-      }
-      onClose();
+      setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
+  };
+
+  const handleCloseNotification = () => {
+    setSelectedNotification(null);
   };
 
   return (
@@ -142,22 +140,10 @@ function NotificationList({ open, onClose }) {
           ))}
         </List>
         {selectedNotification && (
-          <Dialog
-            open={Boolean(selectedNotification)}
-            onClose={() => setSelectedNotification(null)}
-          >
+          <Dialog open={Boolean(selectedNotification)} onClose={handleCloseNotification}>
             <DialogTitle>通知详情</DialogTitle>
             <DialogContent>
               <Typography>{selectedNotification.content}</Typography>
-              {selectedNotification.type === "exhibition" && (
-                <TextField
-                  label="新的办展数量"
-                  type="number"
-                  value={newExhibitionThreshold}
-                  onChange={(e) => setNewExhibitionThreshold(e.target.value)}
-                  fullWidth
-                />
-              )}
             </DialogContent>
             <DialogActions>
               {selectedNotification.type === "invitation" ? (
@@ -169,29 +155,20 @@ function NotificationList({ open, onClose }) {
                     接受
                   </Button>
                 </>
-              ) : selectedNotification.type === "exhibition" ? (
-                <>
-                  <Button onClick={handleDecline} color="secondary">
-                    暂缓
-                  </Button>
-                  <Button onClick={handleAccept} color="primary">
-                    办展
-                  </Button>
-                  <Button onClick={handleUpdateThreshold} color="primary">
-                    更新办展数量
-                  </Button>
-                </>
               ) : (
-                <Button onClick={handleCloseNotification} color="primary">
-                  关闭
+                <Button onClick={handleDelete} color="primary">
+                  删除
                 </Button>
               )}
+              <Button onClick={handleCloseNotification} color="primary">
+                关闭
+              </Button>
             </DialogActions>
           </Dialog>
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCloseNotification} color="primary">
+        <Button onClick={onClose} color="primary">
           关闭
         </Button>
       </DialogActions>
@@ -199,9 +176,9 @@ function NotificationList({ open, onClose }) {
   );
 }
 
-NotificationList.propTypes = {
+NotificationListForArtist.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
-export default NotificationList;
+export default NotificationListForArtist;

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useCallback } from "react";
-import { debounce } from "lodash"; // 引入 lodash 库
+import { debounce } from "lodash";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -77,17 +77,22 @@ function CompanyTables() {
       });
       const artworksData = response.data;
 
-      const formattedRows = artworksData.map((artwork) => ({
-        imageUrl: artwork.imageUrl,
-        title: artwork.title,
-        description: artwork.description,
-        estimatedPrice: artwork.estimatedPrice,
-        salePrice: artwork.salePrice || "",
-        isSold: artwork.isSold,
-        artistName: artwork.artistName,
-        saleDate: artwork.saleDate,
-        _id: artwork._id,
-      }));
+      const formattedRows = artworksData.map((artwork) => {
+        const artistId = artwork.artist?.userId; // 获取 artist.userId
+        console.log("Artwork artistId:", artistId); // 添加调试信息
+        return {
+          imageUrl: artwork.imageUrl,
+          title: artwork.title,
+          description: artwork.description,
+          estimatedPrice: artwork.estimatedPrice,
+          salePrice: artwork.salePrice || "",
+          isSold: artwork.isSold,
+          artistName: artwork.artistName,
+          artistId: artistId, // 确保这里有 artistId 字段
+          saleDate: artwork.saleDate,
+          _id: artwork._id,
+        };
+      });
       setProjectsRows(formattedRows);
       setFilteredRows(formattedRows);
     } catch (error) {
@@ -95,13 +100,12 @@ function CompanyTables() {
     }
   };
 
-  // 使用 useCallback 包装 fetchArtworksWithDebounce 以防止重新创建
   const fetchArtworksWithDebounce = useCallback(
     debounce((query) => {
       fetchArtworks(query);
     }, 1000),
     []
-  ); // 500 毫秒的防抖延迟
+  );
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -121,6 +125,11 @@ function CompanyTables() {
 
   const handleSellArtwork = async () => {
     try {
+      console.log("Selected artwork for selling:", selectedArtwork); // 添加调试信息
+      if (!selectedArtwork.artistId) {
+        throw new Error("Selected artwork does not have artistId");
+      }
+
       const updatedArtwork = {
         ...selectedArtwork,
         isSold: true,
@@ -134,6 +143,17 @@ function CompanyTables() {
       setFilteredRows((prevRows) =>
         prevRows.map((row) => (row._id === selectedArtwork._id ? updatedArtwork : row))
       );
+
+      console.log("Sending notification with receiverId:", selectedArtwork.artistId);
+
+      // 发送通知给作品的作者
+      await axiosInstance.post(`/notifications`, {
+        senderId: user._id,
+        receiverId: selectedArtwork.artistId, // 使用 artistId 字段作为 receiverId
+        type: "alert",
+        content: `您的作品 "${selectedArtwork.title}" 已被售出，售出价格为 ${salePrice}。`,
+      });
+
       handleCloseDialog();
     } catch (error) {
       console.error("Failed to sell artwork:", error);
@@ -142,6 +162,11 @@ function CompanyTables() {
 
   const handleReturnArtwork = async (artwork) => {
     try {
+      console.log("Selected artwork for return:", artwork); // 添加调试信息
+      if (!artwork.artistId) {
+        throw new Error("Artwork does not have artistId");
+      }
+
       const updatedArtwork = {
         ...artwork,
         isSold: false,
@@ -155,6 +180,16 @@ function CompanyTables() {
       setFilteredRows((prevRows) =>
         prevRows.map((row) => (row._id === artwork._id ? updatedArtwork : row))
       );
+
+      console.log("Sending notification with receiverId:", artwork.artistId);
+
+      // 发送通知给作品的作者
+      await axiosInstance.post(`/notifications`, {
+        senderId: user._id,
+        receiverId: artwork.artistId, // 使用 artistId 字段作为 receiverId
+        type: "alert",
+        content: `您的作品 "${artwork.title}" 已被退货。`,
+      });
     } catch (error) {
       console.error("Failed to return artwork:", error);
     }

@@ -10,7 +10,8 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import Breadcrumbs from "examples/Breadcrumbs";
 import NotificationItem from "examples/Items/NotificationItem";
-import NotificationList from "examples/NotificationList";
+import NotificationListForArtist from "examples/NotificationList/NotificationListForArtist";
+import CompanyNotificationList from "examples/NotificationList/CompanyNotificationList"; // 修改路径
 import axiosInstance from "api/axiosInstance";
 import {
   useMaterialUIController,
@@ -28,11 +29,9 @@ import {
   navbarMobileMenu,
 } from "examples/Navbars/DashboardNavbar/styles";
 import MembershipModal from "./MembershipModal";
-
-// 导入 Diamond 图标
 import DiamondIcon from "@mui/icons-material/Diamond";
 
-function DashboardNavbar({ absolute, light, isMini }) {
+function DashboardNavbar({ absolute, light, isMini, onArtistsUpdated }) {
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
@@ -105,6 +104,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
     try {
       const response = await axiosInstance.get(`/notifications/user/${user._id}/unread`);
       setUnreadNotifications(response.data.length);
+      onArtistsUpdated(); // 添加这一行
     } catch (error) {
       console.error("Failed to fetch unread notifications:", error);
     }
@@ -228,7 +228,18 @@ function DashboardNavbar({ absolute, light, isMini }) {
           )}
         </Toolbar>
       </AppBar>
-      <NotificationList open={openNotificationList} onClose={handleCloseNotificationList} />
+      {user?.role === "artist" ? (
+        <NotificationListForArtist
+          open={openNotificationList}
+          onClose={handleCloseNotificationList}
+        />
+      ) : (
+        <CompanyNotificationList
+          open={openNotificationList}
+          onClose={handleCloseNotificationList}
+          onArtistsUpdated={onArtistsUpdated} // 添加这一行
+        />
+      )}
       <MembershipModal open={openMembershipModal} onClose={handleCloseMembershipModal} />
     </>
   );
@@ -246,6 +257,7 @@ DashboardNavbar.propTypes = {
   absolute: PropTypes.bool,
   light: PropTypes.bool,
   isMini: PropTypes.bool,
+  onArtistsUpdated: PropTypes.func.isRequired, // 添加 prop 类型检查
 };
 
 export default DashboardNavbar;

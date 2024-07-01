@@ -22,7 +22,6 @@ function ViewArtistProfile({ open, onClose, userId }) {
     company: "",
     avatar: "",
     bio: "",
-    achievements: "",
   });
   const [companyName, setCompanyName] = useState("");
 
@@ -102,14 +101,6 @@ function ViewArtistProfile({ open, onClose, userId }) {
           <MDBox mb={1}>
             <MDTypography variant="body1" color="text">
               {artistInfo.bio || "暂无个人简介"}
-            </MDTypography>
-          </MDBox>
-          <MDTypography variant="h6" fontWeight="medium">
-            成就
-          </MDTypography>
-          <MDBox mb={1}>
-            <MDTypography variant="body1" color="text">
-              {artistInfo.achievements || "暂无成就"}
             </MDTypography>
           </MDBox>
         </MDBox>

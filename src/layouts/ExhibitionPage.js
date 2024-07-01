@@ -108,7 +108,7 @@ function ExhibitionPage() {
       };
       await axiosInstance.put(`/artworks/${artwork._id}`, updatedArtwork);
       setArtworks((prevArtworks) =>
-        prevArtworks.map((artwork) => (artwork._id === artwork._id ? updatedArtwork : artwork))
+        prevArtworks.map((item) => (item._id === artwork._id ? updatedArtwork : item))
       );
     } catch (error) {
       console.error("退货作品失败:", error);

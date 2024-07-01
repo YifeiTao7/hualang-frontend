@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../../api/axiosInstance"; // 确保路径正确
-import { useUser } from "../../context/UserContext"; // 使用useUser钩子
+import axiosInstance from "../../api/axiosInstance";
+import { useUser } from "../../context/UserContext";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -23,7 +23,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-import SubmissionForm from "./components/SubmissionForm"; // 创建提交作品部分组件
+import SubmissionForm from "./components/SubmissionForm";
 
 function ArtistTables() {
   const { user } = useUser();
@@ -36,7 +36,8 @@ function ArtistTables() {
     const fetchArtworks = async () => {
       try {
         const response = await axiosInstance.get(`/artworks/artist/${user._id}`);
-        setArtworks(response.data);
+        const unsoldArtworks = response.data.filter((artwork) => !artwork.isSold);
+        setArtworks(unsoldArtworks);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch artworks:", error);
@@ -49,7 +50,9 @@ function ArtistTables() {
   }, [user]);
 
   const handleArtworkUpload = (newArtwork) => {
-    setArtworks((prevArtworks) => [newArtwork, ...prevArtworks]);
+    if (!newArtwork.isSold) {
+      setArtworks((prevArtworks) => [newArtwork, ...prevArtworks]);
+    }
   };
 
   const handleDeleteArtwork = async () => {
@@ -129,7 +132,7 @@ function ArtistTables() {
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <SubmissionForm onUploadSuccess={handleArtworkUpload} /> {/* 这里是提交作品部分 */}
+                <SubmissionForm onUploadSuccess={handleArtworkUpload} />
               </MDBox>
             </Card>
           </Grid>
