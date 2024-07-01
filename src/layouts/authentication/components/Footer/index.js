@@ -49,16 +49,7 @@ function Footer({ light }) {
             flexWrap="wrap"
             color={light ? "white" : "text"}
             fontSize={size.sm}
-          >
-            &copy; {new Date().getFullYear()}, made by
-            <MDBox fontSize={size.md} color={light ? "white" : "dark"} mb={-0.5} mx={0.25}></MDBox>
-            by
-            <Link href="https://yifei-tao.com/" target="_blank">
-              <MDTypography variant="button" fontWeight="medium" color={light ? "white" : "dark"}>
-                &nbsp;Yifei Tao&nbsp;
-              </MDTypography>
-            </Link>
-          </MDBox>
+          ></MDBox>
           <MDBox
             component="ul"
             sx={({ breakpoints }) => ({
