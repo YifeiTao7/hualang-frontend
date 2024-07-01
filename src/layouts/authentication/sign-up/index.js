@@ -14,26 +14,28 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/s591529137db2e.jpg";
 
 const CustomSelect = styled(Select)(({ theme }) => ({
-  height: "56px",
-  padding: "10px",
-  fontSize: "16px",
-  zIndex: 1000, // 确保 Select 组件在最前面
-  backgroundColor: "lightyellow",
+  zIndex: 1, // 设置 z-index 为 1
+  height: "auto",
+  padding: "0",
+  fontSize: "inherit",
+  position: "relative", // 添加 position 属性
   [theme.breakpoints.down("sm")]: {
-    height: "70px",
-    padding: "15px",
-    fontSize: "20px",
+    height: "auto",
+    padding: "0",
+    fontSize: "inherit",
   },
 }));
 
 const CustomButton = styled(MDButton)(({ theme }) => ({
-  height: "56px",
-  padding: "10px",
-  fontSize: "16px",
+  zIndex: 1, // 设置 z-index 为 1
+  height: "auto",
+  padding: "0",
+  fontSize: "inherit",
+  position: "relative", // 添加 position 属性
   [theme.breakpoints.down("sm")]: {
-    height: "70px",
-    padding: "15px",
-    fontSize: "20px",
+    height: "auto",
+    padding: "0",
+    fontSize: "inherit",
   },
 }));
 
@@ -127,7 +129,7 @@ function SignUp() {
             </MDBox>
             {error && (
               <MDBox mt={2} mb={2}>
-                <MDAlert color="error" sx={{ fontSize: 14 }}>
+                <MDAlert color="error" sx={{ fontSize: 14, zIndex: 1, position: "relative" }}>
                   {error}
                 </MDAlert>
               </MDBox>
