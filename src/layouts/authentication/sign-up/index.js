@@ -45,6 +45,7 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false); // 定义 success 状态变量
   const navigate = useNavigate();
 
   const handleRoleChange = (event) => {
@@ -54,10 +55,14 @@ function SignUp() {
   const handleRegister = async (event) => {
     event.preventDefault();
     setError("");
+    setSuccess(false); // 重置 success 状态
 
     try {
       await axiosInstance.post("/auth/register", { name, email, password, role });
-      navigate("/authentication/sign-in");
+      setSuccess(true); // 设置 success 状态为 true
+      setTimeout(() => {
+        navigate("/authentication/sign-in");
+      }, 3000); // 3秒后跳转到登录页面
     } catch (error) {
       const errorMessage = error.response?.data?.message || "注册失败，请检查输入的信息。";
       setError(errorMessage);
@@ -131,6 +136,13 @@ function SignUp() {
               <MDBox mt={2} mb={2}>
                 <MDAlert color="error" sx={{ fontSize: 14, zIndex: 1, position: "relative" }}>
                   {error}
+                </MDAlert>
+              </MDBox>
+            )}
+            {success && (
+              <MDBox mt={2} mb={2}>
+                <MDAlert color="success" sx={{ fontSize: 14, zIndex: 1, position: "relative" }}>
+                  恭喜您注册成功！3秒后将跳转到登录页面。
                 </MDAlert>
               </MDBox>
             )}
