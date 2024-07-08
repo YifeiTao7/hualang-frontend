@@ -39,12 +39,12 @@
     "yup": "1.1.1"
   },
   "scripts": {
-    "start": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
-    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
-  },
+  "start": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
+  "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build && copyfiles _redirects build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+  "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -64,6 +64,7 @@
     ]
   },
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "cross-env": "^7.0.3",
     "eslint": "8.39.0",
     "eslint-config-prettier": "8.8.0",
