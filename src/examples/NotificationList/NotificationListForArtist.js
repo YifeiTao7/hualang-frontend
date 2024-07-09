@@ -35,7 +35,7 @@ function NotificationListForArtist({ open, onClose }) {
     fetchNotifications();
 
     const eventSource = new EventSource(
-      `http://localhost:5000/api/notifications/events?userId=${user._id}`
+      `${process.env.REACT_APP_API_URL}/notifications/events?userId=${user._id}`
     );
 
     eventSource.onmessage = (event) => {
