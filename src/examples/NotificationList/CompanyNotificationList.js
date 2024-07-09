@@ -35,7 +35,7 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
     fetchNotifications();
 
     const eventSource = new EventSource(
-      `${process.env.REACT_APP_API_URL}/notifications/events?userId=${user._id}`
+      `${process.env.REACT_APP_API_URL}notifications/events?userId=${user._id}`
     );
 
     eventSource.onmessage = (event) => {
