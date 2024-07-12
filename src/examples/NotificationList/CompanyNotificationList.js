@@ -25,7 +25,7 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axiosInstance.get(`/notifications/user/${user._id}/unread`);
+        const response = await axiosInstance.get(`/notifications/user/${user.id}/unread`);
         setNotifications(response.data);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
@@ -35,7 +35,7 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
     fetchNotifications();
 
     const eventSource = new EventSource(
-      `${process.env.REACT_APP_API_URL}notifications/events?userId=${user._id}`
+      `${process.env.REACT_APP_API_URL}notifications/events?userid=${user.id}`
     );
 
     eventSource.onmessage = (event) => {
@@ -67,8 +67,8 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
   const handleDeleteNotification = async () => {
     try {
       if (selectedNotification) {
-        await axiosInstance.delete(`/notifications/${selectedNotification._id}`);
-        setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
+        await axiosInstance.delete(`/notifications/${selectedNotification.id}`);
+        setNotifications((prev) => prev.filter((n) => n.id !== selectedNotification.id));
         setSelectedNotification(null);
         onArtistsUpdated(); // 更新项目数据
       }
@@ -84,7 +84,7 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
         <List>
           {notifications.map((notification) => (
             <ListItem
-              key={notification._id}
+              key={notification.id}
               button
               onClick={() => handleNotificationClick(notification)}
             >

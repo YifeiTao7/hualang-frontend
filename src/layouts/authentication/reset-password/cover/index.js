@@ -19,28 +19,33 @@ function ResetPassword() {
 
   const handleRequestReset = async (event) => {
     event.preventDefault();
+    setMessage(""); // 清除之前的消息
     try {
       const response = await axiosInstance.post("/password-reset/request", { email });
       setMessage(response.data.message);
       setStep(2);
     } catch (error) {
-      setMessage("请求重置密码时出错，请稍后再试。");
+      const errorMessage = error.response?.data?.message || "请求重置密码时出错，请稍后再试。";
+      setMessage(errorMessage);
     }
   };
 
   const handleVerifyCode = async (event) => {
     event.preventDefault();
+    setMessage(""); // 清除之前的消息
     try {
       const response = await axiosInstance.post("/password-reset/verify-code", { email, code });
       setMessage(response.data.message);
       setStep(3);
     } catch (error) {
-      setMessage("验证码验证失败，请检查后重试。");
+      const errorMessage = error.response?.data?.message || "验证码验证失败，请检查后重试。";
+      setMessage(errorMessage);
     }
   };
 
   const handleResetPassword = async (event) => {
     event.preventDefault();
+    setMessage(""); // 清除之前的消息
     try {
       const response = await axiosInstance.post("/password-reset/reset", {
         email,
@@ -50,7 +55,8 @@ function ResetPassword() {
       setMessage(response.data.message);
       setStep(4);
     } catch (error) {
-      setMessage("重置密码时出错，请稍后再试。");
+      const errorMessage = error.response?.data?.message || "重置密码时出错，请稍后再试。";
+      setMessage(errorMessage);
     }
   };
 
@@ -148,18 +154,18 @@ function ResetPassword() {
               </MDButton>
             </MDBox>
           )}
+          {message && (
+            <MDBox mt={2} mb={1} textAlign="center">
+              <MDTypography variant="body2" color={step === 4 ? "success" : "error"}>
+                {message}
+              </MDTypography>
+            </MDBox>
+          )}
           <MDBox mt={2} mb={1}>
             <MDButton variant="outlined" color="secondary" fullWidth onClick={() => navigate(-1)}>
               回退
             </MDButton>
           </MDBox>
-          {message && (
-            <MDBox mt={2} mb={1} textAlign="center">
-              <MDTypography variant="body2" color="error">
-                {message}
-              </MDTypography>
-            </MDBox>
-          )}
         </MDBox>
       </Card>
     </CoverLayout>

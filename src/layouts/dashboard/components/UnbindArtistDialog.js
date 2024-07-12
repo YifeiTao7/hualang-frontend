@@ -25,7 +25,7 @@ function UnbindArtistDialog({ open, onClose, onUnbind, artists }) {
     if (selectedArtistId) {
       onUnbind(selectedArtistId);
       setSnackbarMessage(
-        `已解约画家 ${artists.find((artist) => artist.userId === selectedArtistId).name}`
+        `已解约画家 ${artists.find((artist) => artist.userid === selectedArtistId).name}`
       );
       setSnackbarOpen(true);
       setSelectedArtistId(null);
@@ -43,10 +43,10 @@ function UnbindArtistDialog({ open, onClose, onUnbind, artists }) {
         <List>
           {artists.map((artist) => (
             <ListItem
-              key={artist.userId}
+              key={artist.userid}
               button
-              onClick={() => setSelectedArtistId(artist.userId)}
-              selected={selectedArtistId === artist.userId}
+              onClick={() => setSelectedArtistId(artist.userid)}
+              selected={selectedArtistId === artist.userid}
               style={{ display: "flex", alignItems: "center" }}
             >
               <ListItemAvatar>
@@ -88,7 +88,7 @@ UnbindArtistDialog.propTypes = {
     PropTypes.shape({
       avatar: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      userId: PropTypes.string.isRequired,
+      userid: PropTypes.string.isRequired,
     })
   ).isRequired,
 };

@@ -67,14 +67,14 @@ function DashboardNavbar({ absolute, light, isMini, onArtistsUpdated }) {
   useEffect(() => {
     const fetchUnreadNotifications = async () => {
       try {
-        const response = await axiosInstance.get(`/notifications/user/${user._id}/unread`);
+        const response = await axiosInstance.get(`/notifications/user/${user.id}/unread`);
         setUnreadNotifications(response.data.length);
       } catch (error) {
         console.error("Failed to fetch unread notifications:", error);
       }
     };
 
-    if (user && user._id) {
+    if (user && user.id) {
       fetchUnreadNotifications();
     }
   }, [user]);
@@ -82,7 +82,7 @@ function DashboardNavbar({ absolute, light, isMini, onArtistsUpdated }) {
   useEffect(() => {
     const fetchMembership = async () => {
       try {
-        const response = await axiosInstance.get(`/companies/${user._id}`);
+        const response = await axiosInstance.get(`/companies/${user.id}`);
         setMembership(response.data.membership);
       } catch (error) {
         console.error("Failed to fetch membership info:", error);
@@ -102,7 +102,7 @@ function DashboardNavbar({ absolute, light, isMini, onArtistsUpdated }) {
   const handleCloseNotificationList = async () => {
     setOpenNotificationList(false);
     try {
-      const response = await axiosInstance.get(`/notifications/user/${user._id}/unread`);
+      const response = await axiosInstance.get(`/notifications/user/${user.id}/unread`);
       setUnreadNotifications(response.data.length);
       onArtistsUpdated(); // 添加这一行
     } catch (error) {

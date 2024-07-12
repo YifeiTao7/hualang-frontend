@@ -35,10 +35,10 @@ function Profile() {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const artworkResponse = await axiosInstance.get(`/artworks/artist/${user._id}`);
+        const artworkResponse = await axiosInstance.get(`/artworks/artist/${user.id}`);
         setArtworks(artworkResponse.data);
 
-        const profileResponse = await axiosInstance.get(`/artists/${user._id}`);
+        const profileResponse = await axiosInstance.get(`/artists/${user.id}`);
         setBio(profileResponse.data.bio);
 
         setLoading(false);
@@ -47,7 +47,7 @@ function Profile() {
       }
     };
 
-    if (user && user._id) {
+    if (user && user.id) {
       fetchProfileData();
     }
   }, [user]);
@@ -59,7 +59,7 @@ function Profile() {
 
   const handleSaveBio = async () => {
     try {
-      const response = await axiosInstance.put(`/artists/${user._id}`, { bio: editBio });
+      const response = await axiosInstance.put(`/artists/${user.id}`, { bio: editBio });
       setBio(response.data.bio);
       setEditBioOpen(false);
     } catch (error) {
@@ -109,9 +109,9 @@ function Profile() {
         ) : (
           <Grid container spacing={6}>
             {artworks.slice(0, 4).map((artwork) => (
-              <Grid item xs={12} md={6} xl={3} key={artwork._id}>
+              <Grid item xs={12} md={6} xl={3} key={artwork.id}>
                 <DefaultProjectCard
-                  image={artwork.imageUrl}
+                  image={artwork.imageurl}
                   label="作品"
                   title={artwork.title}
                   description={artwork.description}

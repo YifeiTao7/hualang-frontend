@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL, // 根据你的服务器地址进行修改
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api/", // 如果环境变量未设置，默认指向本地服务器
   headers: {
     "Content-Type": "application/json",
   },

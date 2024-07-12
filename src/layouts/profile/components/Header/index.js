@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import axiosInstance from "../../../../api/axiosInstance";
 import { useUser } from "../../../../context/UserContext";
 
@@ -22,7 +21,7 @@ import MDAvatar from "components/MDAvatar";
 
 // 图片
 import backgroundImage from "assets/images/s591529137db2e.jpg";
-import defaultAvatar from "assets/images/default_avatar.jpg"; // 导入默认头像
+import defaultAvatar from "assets/images/default_avatar.jpg";
 
 function Header() {
   const { user } = useUser();
@@ -40,23 +39,20 @@ function Header() {
   const [editOpen, setEditOpen] = useState(false);
   const [editAvatarOpen, setEditAvatarOpen] = useState(false); // 添加状态来控制头像编辑对话框
   const [editValues, setEditValues] = useState({
-    name: "",
-    email: "",
     phone: "",
     address: "",
     weChat: "",
     qq: "",
-    company: "",
   });
   const [newAvatar, setNewAvatar] = useState(null); // 添加状态来保存新头像
 
   useEffect(() => {
     const fetchArtistInfo = async () => {
       try {
-        const response = await axiosInstance.get(`/artists/${user._id}`);
+        const response = await axiosInstance.get(`/artists/${user.id}`);
         setArtistInfo(response.data);
-        if (response.data.company) {
-          fetchCompanyName(response.data.company);
+        if (response.data.companyId) {
+          fetchCompanyName(response.data.companyId);
         }
       } catch (error) {
         console.error("Failed to fetch artist info:", error);
@@ -72,13 +68,18 @@ function Header() {
       }
     };
 
-    if (user && user._id) {
+    if (user && user.id) {
       fetchArtistInfo();
     }
   }, [user]);
 
   const handleEditProfile = () => {
-    setEditValues(artistInfo);
+    setEditValues({
+      phone: artistInfo.phone,
+      address: artistInfo.address,
+      weChat: artistInfo.weChat,
+      qq: artistInfo.qq,
+    });
     setEditOpen(true);
   };
 
@@ -107,7 +108,7 @@ function Header() {
 
   const handleSave = async () => {
     try {
-      const response = await axiosInstance.put(`/artists/${user._id}`, editValues);
+      const response = await axiosInstance.put(`/artists/${user.id}`, editValues);
       setArtistInfo(response.data);
       setEditOpen(false);
     } catch (error) {
@@ -121,7 +122,7 @@ function Header() {
       formData.append("avatar", newAvatar);
 
       try {
-        const response = await axiosInstance.put(`/artists/${user._id}/avatar`, formData, {
+        const response = await axiosInstance.put(`/artists/${user.id}/avatar`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -231,25 +232,6 @@ function Header() {
         <DialogTitle>编辑个人资料</DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="姓名"
-            type="text"
-            fullWidth
-            value={editValues.name}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="邮箱"
-            type="email"
-            fullWidth
-            value={editValues.email}
-            onChange={handleChange}
-          />
-          <TextField
             margin="dense"
             name="phone"
             label="电话"
@@ -285,15 +267,6 @@ function Header() {
             value={editValues.qq}
             onChange={handleChange}
           />
-          <TextField
-            margin="dense"
-            name="company"
-            label="公司"
-            type="text"
-            fullWidth
-            value={editValues.company}
-            onChange={handleChange}
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEdit} color="primary">
@@ -321,13 +294,5 @@ function Header() {
     </MDBox>
   );
 }
-
-// 设置 Header 的默认属性
-Header.defaultProps = {};
-
-// 类型检查 props
-Header.propTypes = {
-  children: PropTypes.node,
-};
 
 export default Header;

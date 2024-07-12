@@ -25,7 +25,7 @@ function NotificationListForArtist({ open, onClose }) {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axiosInstance.get(`/notifications/user/${user._id}/unread`);
+        const response = await axiosInstance.get(`/notifications/user/${user.id}/unread`);
         setNotifications(response.data);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
@@ -35,7 +35,7 @@ function NotificationListForArtist({ open, onClose }) {
     fetchNotifications();
 
     const eventSource = new EventSource(
-      `${process.env.REACT_APP_API_URL}notifications/events?userId=${user._id}`
+      `${process.env.REACT_APP_API_URL}notifications/events?userid=${user.id}`
     );
 
     eventSource.onmessage = (event) => {
@@ -61,18 +61,18 @@ function NotificationListForArtist({ open, onClose }) {
 
   const handleAccept = async () => {
     try {
-      // 接受邀请的请求
-      await axiosInstance.post(`/notifications/${selectedNotification._id}/accept`);
+      console.log(`Accepting notification with ID: ${selectedNotification.id}`);
+      const response = await axiosInstance.post(`/notifications/${selectedNotification.id}/accept`);
+      console.log("Accept response:", response.data);
 
-      // 将接受邀请的通知发送给公司
       await axiosInstance.post(`/notifications`, {
-        senderId: user._id,
-        receiverId: selectedNotification.senderId,
+        senderid: user.id,
+        receiverid: selectedNotification.senderid,
         type: "alert",
         content: `${user.name} 已接受您的邀请。`,
       });
 
-      setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
+      setNotifications((prev) => prev.filter((n) => n.id !== selectedNotification.id));
       setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to accept notification:", error);
@@ -82,17 +82,17 @@ function NotificationListForArtist({ open, onClose }) {
   const handleDecline = async () => {
     try {
       // 拒绝邀请的请求
-      await axiosInstance.post(`/notifications/${selectedNotification._id}/reject`);
+      await axiosInstance.post(`/notifications/${selectedNotification.id}/reject`);
 
       // 将拒绝邀请的通知发送给公司
       await axiosInstance.post(`/notifications`, {
-        senderId: user._id,
-        receiverId: selectedNotification.senderId,
+        senderid: user.id,
+        receiverid: selectedNotification.senderid,
         type: "alert",
         content: `${user.name} 已拒绝您的邀请。`,
       });
 
-      setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
+      setNotifications((prev) => prev.filter((n) => n.id !== selectedNotification.id));
       setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to decline notification:", error);
@@ -102,8 +102,8 @@ function NotificationListForArtist({ open, onClose }) {
   const handleDelete = async () => {
     try {
       // 删除通知的请求
-      await axiosInstance.delete(`/notifications/${selectedNotification._id}`);
-      setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
+      await axiosInstance.delete(`/notifications/${selectedNotification.id}`);
+      setNotifications((prev) => prev.filter((n) => n.id !== selectedNotification.id));
       setSelectedNotification(null);
     } catch (error) {
       console.error("Failed to delete notification:", error);
@@ -126,7 +126,7 @@ function NotificationListForArtist({ open, onClose }) {
         <List>
           {notifications.map((notification) => (
             <ListItem
-              key={notification._id}
+              key={notification.id}
               button
               onClick={() => handleNotificationClick(notification)}
             >

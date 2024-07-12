@@ -9,7 +9,7 @@ import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
 import ProfileInfoCard from "examples/Cards/InfoCards/ProfileInfoCard";
 import axiosInstance from "../api/axiosInstance";
 
-function ViewArtistProfile({ open, onClose, userId }) {
+function ViewArtistProfile({ open, onClose, userid }) {
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [artistInfo, setArtistInfo] = useState({
@@ -26,57 +26,31 @@ function ViewArtistProfile({ open, onClose, userId }) {
   const [companyName, setCompanyName] = useState("");
 
   useEffect(() => {
-    const fetchArtworksByIds = async (artworkIds) => {
+    const fetchProfileData = async () => {
       try {
-        console.log("Fetching artworks with IDs:", artworkIds);
-        const artworkPromises = artworkIds.map((id) => axiosInstance.get(`/artworks/${id}`));
-        const artworkResponses = await Promise.all(artworkPromises);
-        const fetchedArtworks = artworkResponses.map((response) => response.data);
-        console.log("Fetched artworks:", fetchedArtworks);
-        setArtworks(fetchedArtworks);
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch artworks:", error);
-      }
-    };
-
-    const fetchCompanyName = async (companyId) => {
-      try {
-        const response = await axiosInstance.get(`/companies/${companyId}`);
-        return response.data.name;
-      } catch (error) {
-        console.error("Failed to fetch company name:", error);
-        return "";
-      }
-    };
-
-    const fetchArtistInfo = async () => {
-      try {
-        console.log("Fetching artist info for userId:", userId);
-        const response = await axiosInstance.get(`/artists/${userId}`);
-        console.log("Fetched artist info:", response.data);
-        const artistData = response.data;
-
-        if (artistData.company) {
-          const companyName = await fetchCompanyName(artistData.company);
-          artistData.companyName = companyName;
-          setCompanyName(companyName);
-        }
-
+        const profileResponse = await axiosInstance.get(`/artists/${userid}`);
+        const artistData = profileResponse.data;
         setArtistInfo(artistData);
 
-        if (artistData.artworks) {
-          fetchArtworksByIds(artistData.artworks);
+        if (artistData.company) {
+          const companyResponse = await axiosInstance.get(`/companies/${artistData.company}`);
+          setCompanyName(companyResponse.data.name);
         }
+
+        const artworksResponse = await axiosInstance.get(`/artworks/artist/${userid}`);
+        setArtworks(artworksResponse.data);
+
+        setLoading(false);
       } catch (error) {
-        console.error("Failed to fetch artist info:", error);
+        console.error("Failed to fetch artist info and artworks:", error);
+        setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchArtistInfo();
+    if (userid) {
+      fetchProfileData();
     }
-  }, [userId]);
+  }, [userid]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -122,9 +96,9 @@ function ViewArtistProfile({ open, onClose, userId }) {
           ) : (
             <Grid container spacing={6}>
               {artworks.slice(0, 4).map((artwork) => (
-                <Grid item xs={12} md={6} xl={3} key={artwork._id}>
+                <Grid item xs={12} md={6} xl={3} key={artwork.id}>
                   <DefaultProjectCard
-                    image={artwork.imageUrl}
+                    image={artwork.imageurl}
                     label="作品"
                     title={artwork.title}
                     description={artwork.description}
@@ -153,7 +127,7 @@ function ViewArtistProfile({ open, onClose, userId }) {
 ViewArtistProfile.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  userId: PropTypes.string.isRequired,
+  userid: PropTypes.number.isRequired,
 };
 
 export default ViewArtistProfile;

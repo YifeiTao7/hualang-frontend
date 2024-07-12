@@ -1,9 +1,9 @@
 import axiosInstance from "./axiosInstance";
 
 // Fetch unread notifications
-export const fetchUnreadNotifications = async (userId) => {
+export const fetchUnreadNotifications = async (userid) => {
   try {
-    const response = await axiosInstance.get(`/notifications/user/${userId}/unread`);
+    const response = await axiosInstance.get(`/notifications/user/${userid}/unread`);
     return response.data;
   } catch (error) {
     console.error("Error fetching unread notifications:", error);

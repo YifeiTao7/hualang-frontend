@@ -35,31 +35,29 @@ function ArtistTables() {
   useEffect(() => {
     const fetchArtworks = async () => {
       try {
-        const response = await axiosInstance.get(`/artworks/artist/${user._id}`);
-        const unsoldArtworks = response.data.filter((artwork) => !artwork.isSold);
-        setArtworks(unsoldArtworks);
+        const response = await axiosInstance.get(`/artworks/artist/${user.id}`);
+        console.log("Fetched artworks:", response.data); // 调试信息
+        setArtworks(response.data);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch artworks:", error);
       }
     };
 
-    if (user && user._id) {
+    if (user && user.id) {
       fetchArtworks();
     }
   }, [user]);
 
   const handleArtworkUpload = (newArtwork) => {
-    if (!newArtwork.isSold) {
-      setArtworks((prevArtworks) => [newArtwork, ...prevArtworks]);
-    }
+    setArtworks((prevArtworks) => [newArtwork, ...prevArtworks]);
   };
 
   const handleDeleteArtwork = async () => {
     try {
       await axiosInstance.delete(`/artworks/${selectedArtworkId}`);
       setArtworks((prevArtworks) =>
-        prevArtworks.filter((artwork) => artwork._id !== selectedArtworkId)
+        prevArtworks.filter((artwork) => artwork.id !== selectedArtworkId)
       );
       setOpenDialog(false);
       setSelectedArtworkId(null);
@@ -81,17 +79,22 @@ function ArtistTables() {
   const columns = [
     {
       Header: "图片",
-      accessor: "imageUrl",
+      accessor: "imageurl",
       // eslint-disable-next-line react/prop-types
       Cell: ({ value }) => <img src={value} alt="Artwork" width={50} />,
     },
     { Header: "标题", accessor: "title" },
-    { Header: "预估价格", accessor: "estimatedPrice" },
+    { Header: "预估价格", accessor: "estimatedprice" }, // 确保这里使用正确的小写字段名
     { Header: "描述", accessor: "description" },
-    { Header: "创建日期", accessor: "creationDate" },
+    { Header: "创建日期", accessor: "creationdate" }, // 使用小写
+    {
+      Header: "售出状态",
+      accessor: "issold",
+      Cell: ({ value }) => (value ? "已售出" : "未售出"),
+    },
     {
       Header: "操作",
-      accessor: "_id",
+      accessor: "id",
       // eslint-disable-next-line react/prop-types
       Cell: ({ value }) => (
         <IconButton color="error" onClick={() => handleOpenDialog(value)}>
@@ -104,10 +107,13 @@ function ArtistTables() {
   const rows = artworks.map((artwork) => ({
     title: artwork.title,
     description: artwork.description,
-    estimatedPrice: artwork.estimatedPrice,
-    imageUrl: artwork.imageUrl,
-    creationDate: new Date(artwork.creationDate).toLocaleString(),
-    _id: artwork._id,
+    estimatedprice: artwork.estimatedprice, // 使用小写字段名
+    imageurl: artwork.imageurl,
+    creationdate: artwork.creationdate
+      ? new Date(artwork.creationdate).toLocaleString()
+      : "无效日期",
+    issold: artwork.issold, // 新增售出状态字段
+    id: artwork.id,
   }));
 
   return (

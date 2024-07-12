@@ -96,6 +96,7 @@ function SignUp() {
                 label="姓名"
                 variant="standard"
                 fullWidth
+                value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </MDBox>
@@ -105,6 +106,7 @@ function SignUp() {
                 label="邮箱"
                 variant="standard"
                 fullWidth
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </MDBox>
@@ -114,6 +116,7 @@ function SignUp() {
                 label="密码"
                 variant="standard"
                 fullWidth
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </MDBox>

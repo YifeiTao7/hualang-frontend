@@ -35,27 +35,36 @@ function CompanyTables() {
     setProjectsColumns([
       {
         Header: "图片",
-        accessor: "imageUrl",
+        accessor: "imageurl",
         Cell: ({ value }) => (
           <img src={value || "/path/to/default/image.jpg"} alt="Artwork" width={50} height={50} />
         ),
       },
       { Header: "标题", accessor: "title" },
       { Header: "描述", accessor: "description" },
-      { Header: "估计价格", accessor: "estimatedPrice" },
-      { Header: "售出价格", accessor: "salePrice" },
-      { Header: "作者", accessor: "artistName" },
+      { Header: "估计价格", accessor: "estimatedprice" },
+      {
+        Header: "售出价格",
+        accessor: "saleprice",
+        Cell: ({ value }) => {
+          if (value === null || value === undefined || isNaN(value)) {
+            return "暂无";
+          }
+          return parseFloat(value).toFixed(2);
+        },
+      },
+      { Header: "作者", accessor: "artistname" },
       {
         Header: "状态",
-        accessor: "isSold",
+        accessor: "issold",
         Cell: ({ value }) => (value ? "已售出" : "未售出"),
       },
       {
         Header: "操作",
-        accessor: "_id",
+        accessor: "id",
         Cell: ({ value, row }) => (
           <>
-            {!row.original.isSold ? (
+            {!row.original.issold ? (
               <Button color="primary" onClick={() => handleOpenDialog(row.original)}>
                 售出
               </Button>
@@ -68,29 +77,38 @@ function CompanyTables() {
         ),
       },
     ]);
-  }, []);
+
+    fetchArtworks(searchQuery); // 初始化时获取作品数据
+  }, [searchQuery]);
 
   const fetchArtworks = async (query) => {
     try {
       const response = await axiosInstance.get(`/artworks/search`, {
-        params: { query, companyId: user._id },
+        params: { query, companyId: user.id },
       });
       const artworksData = response.data;
 
+      if (!artworksData || !Array.isArray(artworksData)) {
+        throw new Error("Invalid artworks data");
+      }
+
       const formattedRows = artworksData.map((artwork) => {
-        const artistId = artwork.artist?.userId; // 获取 artist.userId
-        console.log("Artwork artistId:", artistId); // 添加调试信息
+        const artistId = artwork.artistid;
         return {
-          imageUrl: artwork.imageUrl,
+          imageurl: artwork.imageurl,
           title: artwork.title,
           description: artwork.description,
-          estimatedPrice: artwork.estimatedPrice,
-          salePrice: artwork.salePrice || "",
-          isSold: artwork.isSold,
-          artistName: artwork.artistName,
-          artistId: artistId, // 确保这里有 artistId 字段
-          saleDate: artwork.saleDate,
-          _id: artwork._id,
+          estimatedprice: artwork.estimatedprice,
+          saleprice: artwork.issold
+            ? artwork.saleprice !== null
+              ? artwork.saleprice
+              : "暂无"
+            : "0",
+          issold: artwork.issold,
+          artistname: artwork.artistname,
+          artistid: artistId,
+          saledate: artwork.saledate,
+          id: artwork.id,
         };
       });
       setProjectsRows(formattedRows);
@@ -125,33 +143,23 @@ function CompanyTables() {
 
   const handleSellArtwork = async () => {
     try {
-      console.log("Selected artwork for selling:", selectedArtwork); // 添加调试信息
-      if (!selectedArtwork.artistId) {
-        throw new Error("Selected artwork does not have artistId");
+      if (!selectedArtwork.artistid) {
+        throw new Error("Selected artwork does not have artistid");
       }
 
       const updatedArtwork = {
-        ...selectedArtwork,
         isSold: true,
-        salePrice: salePrice,
-        saleDate: new Date(),
+        salePrice: salePrice || 0,
       };
-      await axiosInstance.put(`/artworks/${selectedArtwork._id}`, updatedArtwork);
-      setProjectsRows((prevRows) =>
-        prevRows.map((row) => (row._id === selectedArtwork._id ? updatedArtwork : row))
-      );
-      setFilteredRows((prevRows) =>
-        prevRows.map((row) => (row._id === selectedArtwork._id ? updatedArtwork : row))
-      );
 
-      console.log("Sending notification with receiverId:", selectedArtwork.artistId);
+      await axiosInstance.put(`/artworks/${selectedArtwork.id}`, updatedArtwork);
+      fetchArtworks(searchQuery); // 成功售出后重新获取作品数据
 
-      // 发送通知给作品的作者
       await axiosInstance.post(`/notifications`, {
-        senderId: user._id,
-        receiverId: selectedArtwork.artistId, // 使用 artistId 字段作为 receiverId
+        senderid: user.id,
+        receiverid: selectedArtwork.artistid,
         type: "alert",
-        content: `您的作品 "${selectedArtwork.title}" 已被售出，售出价格为 ${salePrice}。`,
+        content: `您的作品 "${selectedArtwork.title}" 已被售出，售出价格为 ${salePrice || 0}。`,
       });
 
       handleCloseDialog();
@@ -162,31 +170,21 @@ function CompanyTables() {
 
   const handleReturnArtwork = async (artwork) => {
     try {
-      console.log("Selected artwork for return:", artwork); // 添加调试信息
-      if (!artwork.artistId) {
-        throw new Error("Artwork does not have artistId");
+      if (!artwork.artistid) {
+        throw new Error("Artwork does not have artistid");
       }
 
       const updatedArtwork = {
-        ...artwork,
         isSold: false,
         salePrice: null,
-        saleDate: null,
       };
-      await axiosInstance.put(`/artworks/${artwork._id}`, updatedArtwork);
-      setProjectsRows((prevRows) =>
-        prevRows.map((row) => (row._id === artwork._id ? updatedArtwork : row))
-      );
-      setFilteredRows((prevRows) =>
-        prevRows.map((row) => (row._id === artwork._id ? updatedArtwork : row))
-      );
 
-      console.log("Sending notification with receiverId:", artwork.artistId);
+      await axiosInstance.put(`/artworks/${artwork.id}`, updatedArtwork);
+      fetchArtworks(searchQuery); // 成功退货后重新获取作品数据
 
-      // 发送通知给作品的作者
       await axiosInstance.post(`/notifications`, {
-        senderId: user._id,
-        receiverId: artwork.artistId, // 使用 artistId 字段作为 receiverId
+        senderid: user.id,
+        receiverid: artwork.artistid,
         type: "alert",
         content: `您的作品 "${artwork.title}" 已被退货。`,
       });

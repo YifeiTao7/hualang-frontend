@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 确保导入 useEffect
 import PropTypes from "prop-types";
 import axiosInstance from "../../../api/axiosInstance"; // 更新路径以匹配您的项目结构
 import { useUser } from "../../../context/UserContext"; // 使用useUser钩子
@@ -44,6 +43,14 @@ function SubmissionForm({ onUploadSuccess }) {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
+  useEffect(() => {
+    if (!user) {
+      console.error("User is not available");
+    } else {
+      console.log("User ID:", user.id); // 确保 user.id 不为空
+    }
+  }, [user]);
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setFile(file);
@@ -53,14 +60,18 @@ function SubmissionForm({ onUploadSuccess }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!user || !user.id) {
+      console.error("User ID is missing");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("estimatedPrice", estimatedPrice);
     formData.append("size", size); // 确保尺寸被传递
     formData.append("file", file);
-    formData.append("artistId", user ? user._id : ""); // 使用当前用户的ID
-    formData.append("artistName", user ? user.name : ""); // 添加 artistName
+    formData.append("artistId", user.id); // 使用当前用户的ID
 
     try {
       const response = await axiosInstance.post("/upload/artwork", formData, {
@@ -210,9 +221,12 @@ function SubmissionForm({ onUploadSuccess }) {
           mt: 3,
           mb: 2,
           width: "50%",
-          fontSize: "1.25rem",
-          backgroundColor: "text.primary",
-          color: "background.paper",
+          fontSize: "1rem",
+          bgcolor: "#2196f3",
+          color: "#fff",
+          "&:hover": {
+            bgcolor: "#1e88e5",
+          },
         }}
       >
         上传

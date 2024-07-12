@@ -13,8 +13,8 @@ import MDProgress from "components/MDProgress";
 import TextField from "@mui/material/TextField";
 import axiosInstance from "api/axiosInstance";
 import ArtistListDialog from "../ArtistListDialog";
-import UnbindArtistDialog from "../UnbindArtistDialog.js";
-import { useUser } from "context/UserContext"; // 引入用户上下文
+import UnbindArtistDialog from "../UnbindArtistDialog";
+import { useUser } from "context/UserContext";
 
 function Projects({ title, initialArtists, onArtistsUpdated }) {
   const [menu, setMenu] = useState(null);
@@ -24,7 +24,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
   const [newExhibitionsHeld, setNewExhibitionsHeld] = useState("");
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isUnbindDialogOpen, setUnbindDialogOpen] = useState(false);
-  const { user } = useUser(); // 获取当前用户
+  const { user } = useUser();
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
   const closeMenu = () => setMenu(null);
@@ -52,10 +52,10 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     onArtistsUpdated();
   };
 
-  const handleArtistUnbind = async (userId) => {
+  const handleArtistUnbind = async (artistId) => {
     setUnbindDialogOpen(false);
     try {
-      await axiosInstance.delete(`/companies/unbind-artist/${user._id}/${userId}`);
+      await axiosInstance.delete(`/companies/unbind-artist/${user.id}/${artistId}`);
       onArtistsUpdated();
     } catch (error) {
       console.error("Failed to unbind artist:", error);
@@ -83,19 +83,27 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
   );
 
   const handleExhibitionsHeldChange = (e) => {
-    setNewExhibitionsHeld(e.target.value);
+    const value = parseInt(e.target.value, 10);
+    setNewExhibitionsHeld(Number.isNaN(value) ? 0 : value);
   };
 
   const handleEditExhibitionsHeld = (artist) => {
     setEditedArtist(artist);
-    setNewExhibitionsHeld(artist.exhibitionsHeld.toString());
+    setNewExhibitionsHeld(artist.exhibitionsheld || 0);
   };
 
   const handleSaveExhibitionsHeld = async () => {
     if (editedArtist) {
       try {
-        await axiosInstance.put(`/artists/${editedArtist.userId}`, {
+        await axiosInstance.put(`/artists/${editedArtist.userid}`, {
+          name: editedArtist.name,
+          phone: editedArtist.phone,
+          address: editedArtist.address,
+          weChat: editedArtist.wechat,
+          qq: editedArtist.qq,
+          companyId: editedArtist.companyid, // 确保传递公司ID
           exhibitionsHeld: newExhibitionsHeld,
+          bio: editedArtist.bio,
         });
         onArtistsUpdated();
       } catch (error) {
@@ -110,15 +118,21 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
   const processArtists = (artists) => {
     if (!artists) return [];
     return artists.map((artist) => {
-      const artworksCount = artist.artworks.length;
-      const completion = ((artworksCount / artist.exhibitionsHeld) * 100).toFixed(2);
+      const artworksCount = artist.artworkscount || 0;
+      const exhibitionsHeld = artist.exhibitionsheld || 0;
+      console.log("Artist:", artist);
+      console.log("Artworks count:", artworksCount);
+      console.log("Exhibitions held:", exhibitionsHeld);
+      const completion =
+        exhibitionsHeld > 0 ? ((artworksCount / exhibitionsHeld) * 100).toFixed(2) : 0;
+      console.log("Completion:", completion);
       return {
         avatar: artist.avatar,
-        name: artist.name,
+        name: artist.name || "Unknown Artist",
         artworksCount,
         exhibitionsHeld: (
           <MDBox display="flex" alignItems="center">
-            {editedArtist && editedArtist.userId === artist.userId ? (
+            {editedArtist && editedArtist.userid === artist.userid ? (
               <TextField
                 value={newExhibitionsHeld}
                 onChange={handleExhibitionsHeldChange}
@@ -129,7 +143,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
               />
             ) : (
               <>
-                <MDTypography variant="body2">{artist.exhibitionsHeld}</MDTypography>
+                <MDTypography variant="body2">{artist.exhibitionsheld}</MDTypography>
                 <Icon
                   sx={{ cursor: "pointer", fontSize: "20px", ml: 1 }}
                   onClick={() => handleEditExhibitionsHeld(artist)}
@@ -238,14 +252,9 @@ Projects.propTypes = {
     PropTypes.shape({
       avatar: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      artworks: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          title: PropTypes.string.isRequired,
-        })
-      ).isRequired,
-      exhibitionsHeld: PropTypes.number.isRequired,
-      userId: PropTypes.string.isRequired,
+      artworkscount: PropTypes.number.isRequired, // 使用正确的大小写
+      exhibitionsheld: PropTypes.number.isRequired, // 使用正确的大小写
+      userid: PropTypes.number.isRequired,
     })
   ).isRequired,
   onArtistsUpdated: PropTypes.func.isRequired,

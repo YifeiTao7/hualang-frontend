@@ -37,7 +37,7 @@ function NotificationList({ open, onClose }) {
     fetchNotifications();
 
     const eventSource = new EventSource(
-      `${process.env.REACT_APP_API_URL}notifications/events?userId=${user._id}`
+      `${process.env.REACT_APP_API_URL}notifications/events?userid=${user._id}`
     );
 
     eventSource.onmessage = (event) => {
@@ -81,7 +81,7 @@ function NotificationList({ open, onClose }) {
         `/notifications/${selectedNotification._id}/reject`
       );
       const newNotification = response.data;
-      setNotifications((prev) => prev.filter((n) => n._id !== selectedNotification._id));
+      setNotifications((prev) => prev.filter((n) => n.id !== selectedNotification._id));
       setNotifications((prev) => [...prev, newNotification]);
       setSelectedNotification(null);
     } catch (error) {

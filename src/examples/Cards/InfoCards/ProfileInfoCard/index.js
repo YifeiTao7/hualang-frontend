@@ -25,6 +25,7 @@ function ProfileInfoCard({ title, description, info, action, shadow, onEdit }) {
     weChat: "微信",
     qq: "QQ",
     company: "公司",
+    userid: "用户ID", // 添加 userid 标签
   };
 
   // Render the card info items
@@ -36,7 +37,7 @@ function ProfileInfoCard({ title, description, info, action, shadow, onEdit }) {
             {labels[key]}: &nbsp;
           </MDTypography>
           <MDTypography variant="button" fontWeight="regular" color="text">
-            &nbsp;{info[key] || "无"}
+            &nbsp;{info[key] !== undefined ? info[key].toString() : "无"}
           </MDTypography>
         </MDBox>
       );
@@ -92,7 +93,16 @@ ProfileInfoCard.defaultProps = {
 ProfileInfoCard.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
-  info: PropTypes.objectOf(PropTypes.string).isRequired,
+  info: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string,
+    phone: PropTypes.string,
+    address: PropTypes.string,
+    weChat: PropTypes.string,
+    qq: PropTypes.string,
+    company: PropTypes.string,
+    userid: PropTypes.number, // 将 userid 设置为数字类型
+  }).isRequired,
   action: PropTypes.shape({
     tooltip: PropTypes.string.isRequired,
   }).isRequired,

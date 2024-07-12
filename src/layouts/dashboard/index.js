@@ -11,56 +11,37 @@ import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-import axiosInstance from "api/axiosInstance";
 import { useUser } from "context/UserContext";
+import useFetchData from "hooks/useFetchData"; // 自定义 Hook
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
-  const [artists, setArtists] = useState([]);
-  const [exhibitions, setExhibitions] = useState([]); // 新增状态
-  const [signedArtistsCount, setSignedArtistsCount] = useState(0);
   const { user } = useUser();
+  const { data: artists = [], fetchData: fetchArtists } = useFetchData(
+    `/artists/company/${user.id}`,
+    []
+  );
+  const { data: exhibitions = [], fetchData: fetchExhibitions } = useFetchData(
+    `/exhibitions/company/${user.id}`,
+    []
+  );
 
-  const fetchArtists = async () => {
-    try {
-      if (user && user._id) {
-        const response = await axiosInstance.get(`/artists/company/${user._id}`);
-        const updatedArtists = response.data.map((artist) => ({
-          ...artist,
-          artworks: artist.artworks.map((artwork) => ({
-            id: artwork,
-            title: `Artwork ${artwork}`,
-          })),
-        }));
-        setArtists(updatedArtists);
-        setSignedArtistsCount(updatedArtists.length);
-      }
-    } catch (error) {
-      console.error("Failed to fetch artists:", error);
-    }
-  };
-
-  const fetchExhibitions = async () => {
-    try {
-      if (user && user._id) {
-        const response = await axiosInstance.get(`/exhibitions/company/${user._id}`);
-        setExhibitions(response.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch exhibitions:", error);
-    }
-  };
+  const [signedArtistsCount, setSignedArtistsCount] = useState(0);
 
   useEffect(() => {
-    if (user && user._id) {
+    if (user && user.id) {
       fetchArtists();
       fetchExhibitions();
     }
-  }, [user]);
+  }, [user, user.id, fetchArtists, fetchExhibitions]);
+
+  useEffect(() => {
+    setSignedArtistsCount(artists.length || 0);
+  }, [artists]);
 
   return (
     <DashboardLayout>
-      <DashboardNavbar onArtistsUpdated={fetchArtists} /> {/* 传递 onArtistsUpdated */}
+      <DashboardNavbar onArtistsUpdated={fetchArtists} />
       <MDBox py={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
@@ -69,7 +50,7 @@ function Dashboard() {
                 color="dark"
                 icon="event"
                 title="展会"
-                count={exhibitions.length} // 使用动态数据
+                count={exhibitions.length || 0}
                 percentage={{
                   color: "success",
                   amount: "+10%",
@@ -98,7 +79,7 @@ function Dashboard() {
                 color="success"
                 icon="person"
                 title="签约画师"
-                count={`${signedArtistsCount}名`} // 使用动态数据
+                count={`${signedArtistsCount}名`}
                 percentage={{
                   color: "success",
                   amount: "+5%",
@@ -174,7 +155,7 @@ function Dashboard() {
               />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview title="画师订单概览" companyId={user._id} />
+              <OrdersOverview title="画师订单概览" companyId={user.id} />
             </Grid>
           </Grid>
         </MDBox>

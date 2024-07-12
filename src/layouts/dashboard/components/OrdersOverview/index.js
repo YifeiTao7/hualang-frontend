@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import Card from "@mui/material/Card";
 import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
@@ -34,7 +34,7 @@ function ExhibitionSchedule({ companyId }) {
     try {
       await axiosInstance.delete(`/exhibitions/${confirmDelete.exhibitionId}`);
       setExhibitions((prevExhibitions) =>
-        prevExhibitions.filter((exhibition) => exhibition._id !== confirmDelete.exhibitionId)
+        prevExhibitions.filter((exhibition) => exhibition.id !== confirmDelete.exhibitionId)
       );
       setConfirmDelete({ open: false, exhibitionId: null });
     } catch (error) {
@@ -69,7 +69,7 @@ function ExhibitionSchedule({ companyId }) {
         <MDBox p={2}>
           {exhibitions.map((exhibition) => (
             <MDBox
-              key={exhibition._id}
+              key={exhibition.id}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
@@ -79,13 +79,13 @@ function ExhibitionSchedule({ companyId }) {
                 <TimelineItem
                   color="info"
                   icon="event"
-                  title={`${exhibition.artistName}的作品数量达到${exhibition.artworkCount}，可以举办展会`}
+                  title={exhibition.content}
                   dateTime={new Date(exhibition.date).toLocaleString()}
                 />
                 <Button
                   variant="contained"
                   color="success"
-                  onClick={() => handleComplete(exhibition._id)}
+                  onClick={() => handleComplete(exhibition.id)}
                   sx={{ ml: 2, mt: -6 }}
                 >
                   完成
@@ -127,5 +127,9 @@ function ExhibitionSchedule({ companyId }) {
     </>
   );
 }
+
+ExhibitionSchedule.propTypes = {
+  companyId: PropTypes.number.isRequired, // 修改 PropTypes 验证为数字
+};
 
 export default ExhibitionSchedule;

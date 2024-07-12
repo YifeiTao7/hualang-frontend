@@ -32,6 +32,7 @@ function SignIn() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false); // 定义 rememberMe 状态变量
   const [error, setError] = useState(""); // 定义 error 状态变量
+  const [loading, setLoading] = useState(false); // 定义 loading 状态变量
   const navigate = useNavigate();
   const { login } = useUser();
 
@@ -40,6 +41,7 @@ function SignIn() {
   const handleLogin = async (event) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const response = await axiosInstance.post("/auth/login", { email, password });
@@ -62,8 +64,14 @@ function SignIn() {
         navigate("/dashboard");
       }
     } catch (error) {
-      setError("登录失败，请检查邮箱和密码是否正确。");
+      if (error.response && error.response.status === 401) {
+        setError("登录失败，邮箱或密码错误。");
+      } else {
+        setError("登录失败，请稍后再试。");
+      }
       console.error("Login failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,8 +135,8 @@ function SignIn() {
               </MDBox>
             )}
             <MDBox mt={4} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                登录
+              <MDButton type="submit" variant="gradient" color="info" fullWidth disabled={loading}>
+                {loading ? "登录中..." : "登录"}
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
