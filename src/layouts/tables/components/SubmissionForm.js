@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react"; // 确保导入 useEffect
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import axiosInstance from "../../../api/axiosInstance"; // 更新路径以匹配您的项目结构
-import { useUser } from "../../../context/UserContext"; // 使用useUser钩子
+import axiosInstance from "../../../api/axiosInstance";
+import { useUser } from "../../../context/UserContext";
 
 // @mui material components
 import Button from "@mui/material/Button";
@@ -16,7 +16,11 @@ import Alert from "@mui/material/Alert";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
 
+const themes = ["花鸟", "山水", "人物", "书法"];
 const sizeOptions = [
   { label: "小品 33*33cm 1平方尺", value: "小品 33*33cm 1平方尺" },
   { label: "小品 45*33cm 1.4平方尺", value: "小品 45*33cm 1.4平方尺" },
@@ -32,29 +36,32 @@ const sizeOptions = [
 ];
 
 function SubmissionForm({ onUploadSuccess }) {
-  const { user } = useUser(); // 获取当前用户信息
+  const { user } = useUser();
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [estimatedPrice, setEstimatedPrice] = useState("");
-  const [size, setSize] = useState(""); // 新增尺寸状态
+  const [theme, setTheme] = useState("");
+  const [size, setSize] = useState("");
   const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null); // 图片预览
+  const [filePreview, setFilePreview] = useState(null);
+  const [isAwardWinning, setIsAwardWinning] = useState(false);
+  const [awardDetails, setAwardDetails] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [loading, setLoading] = useState(false); // 新增的加载状态
 
   useEffect(() => {
     if (!user) {
       console.error("User is not available");
     } else {
-      console.log("User ID:", user.id); // 确保 user.id 不为空
+      console.log("User ID:", user.id);
     }
   }, [user]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setFile(file);
-    setFilePreview(URL.createObjectURL(file)); // 设置图片预览
+    setFilePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (event) => {
@@ -67,11 +74,15 @@ function SubmissionForm({ onUploadSuccess }) {
 
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("description", description);
-    formData.append("estimatedPrice", estimatedPrice);
-    formData.append("size", size); // 确保尺寸被传递
+    formData.append("theme", theme);
+    formData.append("size", size);
     formData.append("file", file);
-    formData.append("artistId", user.id); // 使用当前用户的ID
+    formData.append("isAwardWinning", isAwardWinning);
+    formData.append("awardDetails", isAwardWinning ? awardDetails : "");
+    formData.append("isPublished", isPublished);
+    formData.append("artistId", user.id);
+
+    setLoading(true); // 开始上传时设置加载状态
 
     try {
       const response = await axiosInstance.post("/upload/artwork", formData, {
@@ -82,23 +93,26 @@ function SubmissionForm({ onUploadSuccess }) {
 
       if (response.status === 201) {
         const newArtwork = response.data.artwork;
-        onUploadSuccess(newArtwork); // 调用回调函数
+        onUploadSuccess(newArtwork);
         setSnackbarMessage("上传成功！");
         setSnackbarSeverity("success");
         setOpenSnackbar(true);
-        // 清空表单
         setTitle("");
-        setDescription("");
-        setEstimatedPrice("");
-        setSize(""); // 重置尺寸状态
+        setTheme("");
+        setSize("");
         setFile(null);
-        setFilePreview(null); // 清除图片预览
+        setFilePreview(null);
+        setIsAwardWinning(false);
+        setAwardDetails("");
+        setIsPublished(false);
       }
     } catch (error) {
       console.error("上传失败：", error);
       setSnackbarMessage("上传失败，请重试。");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
+    } finally {
+      setLoading(false); // 上传完成后取消加载状态
     }
   };
 
@@ -135,7 +149,7 @@ function SubmissionForm({ onUploadSuccess }) {
                 justifyContent: "center",
                 cursor: "pointer",
                 p: 2,
-                color: "text.primary", // 设置颜色
+                color: "text.primary",
               }}
             >
               {filePreview ? (
@@ -170,41 +184,39 @@ function SubmissionForm({ onUploadSuccess }) {
             onChange={(e) => setTitle(e.target.value)}
             sx={{ mb: 2 }}
           />
-          <TextField
-            required
-            fullWidth
-            id="description"
-            label="描述"
-            name="description"
-            autoComplete="description"
-            multiline
-            rows={2} // 调整描述输入框高度
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            required
-            fullWidth
-            id="estimatedPrice"
-            label="预估价格"
-            name="estimatedPrice"
-            autoComplete="estimatedPrice"
-            value={estimatedPrice}
-            onChange={(e) => setEstimatedPrice(e.target.value)}
-            sx={{ mb: 2 }}
-          />
           <Typography variant="body2" sx={{ mb: 1 }}>
-            {" "}
-            {/* 调整字体大小 */}
+            画作题材
+          </Typography>
+          <FormControl fullWidth required sx={{ mb: 2 }}>
+            <Select
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              displayEmpty
+              inputProps={{ "aria-label": "Without label" }}
+            >
+              <MenuItem value="" disabled>
+                选择题材
+              </MenuItem>
+              {themes.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Typography variant="body2" sx={{ mb: 1 }}>
             画作尺寸
           </Typography>
-          <FormControl fullWidth required>
+          <FormControl fullWidth required sx={{ mb: 2 }}>
             <Select
               value={size}
               onChange={(e) => setSize(e.target.value)}
-              sx={{ mb: 2, height: "auto", minHeight: 30 }} // 调整尺寸选择框的高度
+              displayEmpty
+              inputProps={{ "aria-label": "Without label" }}
             >
+              <MenuItem value="" disabled>
+                选择尺寸
+              </MenuItem>
               {sizeOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
@@ -212,11 +224,37 @@ function SubmissionForm({ onUploadSuccess }) {
               ))}
             </Select>
           </FormControl>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isAwardWinning}
+                onChange={(e) => setIsAwardWinning(e.target.checked)}
+              />
+            }
+            label="是否获奖"
+          />
+          {isAwardWinning && (
+            <TextField
+              fullWidth
+              label="奖项详情"
+              value={awardDetails}
+              onChange={(e) => setAwardDetails(e.target.value)}
+              required
+              sx={{ mb: 2 }}
+            />
+          )}
+          <FormControlLabel
+            control={
+              <Checkbox checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
+            }
+            label="是否出版"
+          />
         </Grid>
       </Grid>
       <Button
         type="submit"
         variant="contained"
+        disabled={loading} // 上传时禁用按钮
         sx={{
           mt: 3,
           mb: 2,
@@ -229,7 +267,7 @@ function SubmissionForm({ onUploadSuccess }) {
           },
         }}
       >
-        上传
+        {loading ? <CircularProgress size={24} color="inherit" /> : "上传"}
       </Button>
       <Snackbar
         open={openSnackbar}

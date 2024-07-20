@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import { debounce } from "lodash";
 import axiosInstance from "../../../api/axiosInstance";
 import { useUser } from "context/UserContext";
 import {
@@ -19,6 +19,8 @@ import {
   Typography,
   Snackbar,
   Alert,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import ViewArtistProfile from "layouts/ViewArtistProfile";
 
@@ -30,23 +32,32 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const { user } = useUser();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const handleSearchChange = async (e) => {
+  // 防抖动函数
+  const debounceSearch = useCallback(
+    debounce(async (searchValue) => {
+      if (searchValue) {
+        try {
+          const response = await axiosInstance.get(`/artists/search?name=${searchValue}`);
+          console.log("Fetched artists:", response.data);
+          setArtists(response.data);
+        } catch (error) {
+          console.error("Failed to fetch artists:", error);
+        }
+      } else {
+        setArtists([]);
+      }
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
     const searchValue = e.target.value;
     console.log("Search value:", searchValue);
     setSearch(searchValue);
-
-    if (searchValue) {
-      try {
-        const response = await axiosInstance.get(`/artists/search?name=${searchValue}`);
-        console.log("Fetched artists:", response.data);
-        setArtists(response.data);
-      } catch (error) {
-        console.error("Failed to fetch artists:", error);
-      }
-    } else {
-      setArtists([]);
-    }
+    debounceSearch(searchValue);
   };
 
   const handleSendInvite = async (artist) => {
@@ -90,7 +101,7 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={fullScreen}>
       <DialogTitle>添加新画师</DialogTitle>
       <DialogContent>
         <TextField
@@ -109,15 +120,16 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
               <ListItemText
                 primary={
                   <Typography style={{ flex: 1, whiteSpace: "nowrap", overflow: "visible" }}>
-                    {artist.name}
+                    {artist.name} (ID: {artist.userid})
                   </Typography>
                 }
               />
-              <Grid container justifyContent="flex-end" spacing={1}>
+              <Grid container justifyContent="flex-end" spacing={1} wrap="nowrap">
                 <Grid item>
                   <Button
                     variant="contained"
                     color="success"
+                    size="small"
                     onClick={() => handleSendInvite(artist)}
                   >
                     添加
@@ -127,6 +139,7 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
                   <Button
                     variant="contained"
                     color="success"
+                    size="small"
                     onClick={() => handleViewProfile(artist.userid)}
                   >
                     查看
@@ -147,7 +160,7 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
         <ViewArtistProfile
           open={profileDialogOpen}
           onClose={handleProfileDialogClose}
-          userid={selectedArtistId} // 修改为小写 userid
+          userid={selectedArtistId}
         />
       )}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>

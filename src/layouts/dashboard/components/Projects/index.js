@@ -22,6 +22,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
   const [artists, setArtists] = useState(initialArtists || []);
   const [editedArtist, setEditedArtist] = useState(null);
   const [newExhibitionsHeld, setNewExhibitionsHeld] = useState("");
+  const [newSignPrice, setNewSignPrice] = useState("");
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isUnbindDialogOpen, setUnbindDialogOpen] = useState(false);
   const { user } = useUser();
@@ -84,11 +85,11 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
 
   const handleExhibitionsHeldChange = (e) => {
     const value = parseInt(e.target.value, 10);
-    setNewExhibitionsHeld(Number.isNaN(value) ? 0 : value);
+    setNewExhibitionsHeld(Number.isNaN(value) ? "" : value);
   };
 
   const handleEditExhibitionsHeld = (artist) => {
-    setEditedArtist(artist);
+    setEditedArtist({ ...artist, field: "exhibitionsHeld" });
     setNewExhibitionsHeld(artist.exhibitionsheld || 0);
   };
 
@@ -102,7 +103,8 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
           weChat: editedArtist.wechat,
           qq: editedArtist.qq,
           companyId: editedArtist.companyid, // 确保传递公司ID
-          exhibitionsHeld: newExhibitionsHeld,
+          exhibitionsHeld: newExhibitionsHeld || editedArtist.exhibitionsheld,
+          signPrice: editedArtist.signprice,
           bio: editedArtist.bio,
         });
         onArtistsUpdated();
@@ -115,24 +117,60 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     }
   };
 
+  const handleSignPriceChange = (e) => {
+    const value = parseFloat(e.target.value);
+    setNewSignPrice(Number.isNaN(value) ? "" : value);
+  };
+
+  const handleEditSignPrice = (artist) => {
+    setEditedArtist({ ...artist, field: "signPrice" });
+    setNewSignPrice(artist.signprice || 0);
+  };
+
+  const handleSaveSignPrice = async () => {
+    if (editedArtist) {
+      try {
+        await axiosInstance.put(`/artists/${editedArtist.userid}`, {
+          name: editedArtist.name,
+          phone: editedArtist.phone,
+          address: editedArtist.address,
+          weChat: editedArtist.wechat,
+          qq: editedArtist.qq,
+          companyId: editedArtist.companyid,
+          exhibitionsHeld: editedArtist.exhibitionsheld,
+          signPrice: newSignPrice || editedArtist.signprice,
+          bio: editedArtist.bio,
+        });
+        onArtistsUpdated();
+      } catch (error) {
+        console.error("Failed to update sign price:", error);
+      } finally {
+        setEditedArtist(null);
+        setNewSignPrice("");
+      }
+    }
+  };
+
   const processArtists = (artists) => {
     if (!artists) return [];
     return artists.map((artist) => {
-      const artworksCount = artist.artworkscount || 0;
-      const exhibitionsHeld = artist.exhibitionsheld || 0;
-      console.log("Artist:", artist);
-      console.log("Artworks count:", artworksCount);
-      console.log("Exhibitions held:", exhibitionsHeld);
-      const completion =
+      const artworksCount = parseInt(artist.artworkscount, 10) || 0;
+      const exhibitionsHeld = parseInt(artist.exhibitionsheld, 10) || 0;
+      const signPrice = artist.signprice !== null ? artist.signprice : 0;
+      let completion =
         exhibitionsHeld > 0 ? ((artworksCount / exhibitionsHeld) * 100).toFixed(2) : 0;
-      console.log("Completion:", completion);
+      if (completion > 100) {
+        completion = 100;
+      }
       return {
         avatar: artist.avatar,
         name: artist.name || "Unknown Artist",
         artworksCount,
         exhibitionsHeld: (
           <MDBox display="flex" alignItems="center">
-            {editedArtist && editedArtist.userid === artist.userid ? (
+            {editedArtist &&
+            editedArtist.userid === artist.userid &&
+            editedArtist.field === "exhibitionsHeld" ? (
               <TextField
                 value={newExhibitionsHeld}
                 onChange={handleExhibitionsHeldChange}
@@ -154,6 +192,37 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
             )}
           </MDBox>
         ),
+        signPrice: (
+          <MDBox display="flex" alignItems="center">
+            {editedArtist &&
+            editedArtist.userid === artist.userid &&
+            editedArtist.field === "signPrice" ? (
+              <TextField
+                value={newSignPrice}
+                onChange={handleSignPriceChange}
+                onBlur={handleSaveSignPrice}
+                type="number"
+                sx={{ width: "100px", mr: 1 }}
+                autoFocus
+                InputProps={{
+                  endAdornment: <span>元/平尺</span>,
+                }}
+              />
+            ) : (
+              <>
+                <MDTypography variant="body2">
+                  {artist.signprice ? `${artist.signprice} 元/平尺` : "暂无"}
+                </MDTypography>
+                <Icon
+                  sx={{ cursor: "pointer", fontSize: "20px", ml: 1 }}
+                  onClick={() => handleEditSignPrice(artist)}
+                >
+                  edit
+                </Icon>
+              </>
+            )}
+          </MDBox>
+        ),
         completion,
       };
     });
@@ -161,7 +230,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
 
   useEffect(() => {
     setRows(processArtists(artists));
-  }, [artists, editedArtist, newExhibitionsHeld]);
+  }, [artists, editedArtist, newExhibitionsHeld, newSignPrice]);
 
   useEffect(() => {
     setArtists(initialArtists);
@@ -173,6 +242,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     { Header: "名字", accessor: "name" },
     { Header: "作品数量", accessor: "artworksCount" },
     { Header: "办展数", accessor: "exhibitionsHeld" },
+    { Header: "签约价格", accessor: "signPrice" },
     {
       Header: "完成度",
       accessor: "completion",
@@ -252,8 +322,9 @@ Projects.propTypes = {
     PropTypes.shape({
       avatar: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      artworkscount: PropTypes.number.isRequired, // 使用正确的大小写
-      exhibitionsheld: PropTypes.number.isRequired, // 使用正确的大小写
+      artworkscount: PropTypes.number.isRequired,
+      exhibitionsheld: PropTypes.number.isRequired,
+      signprice: PropTypes.number, // 添加 signPrice 的 propType
       userid: PropTypes.number.isRequired,
     })
   ).isRequired,

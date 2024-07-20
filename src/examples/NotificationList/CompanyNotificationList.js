@@ -43,6 +43,7 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
       console.log("Received notification:", notification);
       setNotifications((prev) => [...prev, notification]);
       setSelectedNotification(notification); // 自动显示最新的通知
+      console.log("Selected notification:", notification); // 添加日志
     };
 
     eventSource.onerror = (err) => {
@@ -97,23 +98,23 @@ function CompanyNotificationList({ open, onClose, onArtistsUpdated = () => {} })
             </ListItem>
           ))}
         </List>
-        {selectedNotification && (
-          <Dialog open={Boolean(selectedNotification)} onClose={handleCloseNotification}>
-            <DialogTitle>通知详情</DialogTitle>
-            <DialogContent>
-              <Typography>{selectedNotification.content}</Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleDeleteNotification} color="primary">
-                删除
-              </Button>
-              <Button onClick={handleCloseNotification} color="primary">
-                关闭
-              </Button>
-            </DialogActions>
-          </Dialog>
-        )}
       </DialogContent>
+      {selectedNotification && (
+        <Dialog open={Boolean(selectedNotification)} onClose={handleCloseNotification}>
+          <DialogTitle>通知详情</DialogTitle>
+          <DialogContent>
+            <Typography>{selectedNotification.content}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteNotification} color="primary">
+              删除
+            </Button>
+            <Button onClick={handleCloseNotification} color="primary">
+              关闭
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       <DialogActions>
         <Button onClick={onClose} color="primary">
           关闭

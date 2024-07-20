@@ -1,35 +1,32 @@
-/**
-=========================================================
-* Material Dashboard 2  React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-/* eslint-disable no-dupe-keys */
-// Material Dashboard 2 React base styles
 import colors from "assets/theme/base/colors";
 
 const { gradients, dark } = colors;
+
+// Helper function to generate random colors
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 
 function configs(labels, datasets) {
   const backgroundColors = [];
 
   if (datasets.backgroundColors) {
-    datasets.backgroundColors.forEach((color) =>
-      gradients[color]
-        ? backgroundColors.push(gradients[color].state)
-        : backgroundColors.push(dark.main)
+    datasets.backgroundColors.forEach(
+      (color) =>
+        gradients[color]
+          ? backgroundColors.push(gradients[color].state)
+          : backgroundColors.push(getRandomColor()) // 使用随机颜色
     );
   } else {
-    backgroundColors.push(dark.main);
+    // 生成与数据长度相等的随机颜色
+    for (let i = 0; i < datasets.data.length; i++) {
+      backgroundColors.push(getRandomColor());
+    }
   }
 
   return {

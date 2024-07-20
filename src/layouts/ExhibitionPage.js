@@ -47,13 +47,11 @@ function ExhibitionPage() {
   }, [user]);
 
   const fetchArtworks = async (artistId) => {
-    console.log("Fetching artworks for artistId:", artistId);
     try {
       const response = await axiosInstance.get(`/artworks/artist/${artistId}`, {
         params: { isSold: false },
       });
       setArtworks(response.data);
-      console.log("Fetched artworks:", response.data);
     } catch (error) {
       console.error("获取作品失败:", error);
     }
@@ -67,13 +65,11 @@ function ExhibitionPage() {
       id: exhibitionId,
       artistuserid: exhibition.artistuserid,
     });
-    console.log("Selected exhibition:", exhibition);
 
     if (exhibition) {
       try {
         const artistResponse = await axiosInstance.get(`/artists/${exhibition.artistuserid}`);
         setArtistInfo(artistResponse.data);
-        console.log("Fetched artist info:", artistResponse.data);
         await fetchArtworks(exhibition.artistuserid);
       } catch (error) {
         console.error("获取画家信息或作品失败:", error);
@@ -92,6 +88,10 @@ function ExhibitionPage() {
 
   const handleSellArtwork = async () => {
     try {
+      const sizeMatch = selectedArtwork.size.match(/(\d+(\.\d+)?)\s*平方尺/);
+      const sizeInSquareFeet = sizeMatch ? parseFloat(sizeMatch[1]) : 0;
+      const artistPayment = selectedArtwork.signPrice * sizeInSquareFeet;
+
       const updatedArtwork = {
         ...selectedArtwork,
         isSold: true,
@@ -99,8 +99,17 @@ function ExhibitionPage() {
         saleDate: new Date(),
       };
       await axiosInstance.put(`/artworks/${selectedArtwork.id}`, updatedArtwork);
-      console.log("Artwork sold:", updatedArtwork);
       await fetchArtworks(selectedExhibition.artistuserid); // 更新作品列表
+
+      await axiosInstance.post(`/notifications`, {
+        senderid: user.id,
+        receiverid: selectedArtwork.artistid,
+        type: "alert",
+        content: `您的作品 "${
+          selectedArtwork.title
+        }" 已被售出，您获得的金额为 ${artistPayment.toFixed(2)}。`,
+      });
+
       handleCloseDialog();
     } catch (error) {
       console.error("出售作品失败:", error);
@@ -116,8 +125,14 @@ function ExhibitionPage() {
         saleDate: null,
       };
       await axiosInstance.put(`/artworks/${artwork.id}`, updatedArtwork);
-      console.log("Artwork returned:", updatedArtwork);
       await fetchArtworks(selectedExhibition.artistuserid); // 更新作品列表
+
+      await axiosInstance.post(`/notifications`, {
+        senderid: user.id,
+        receiverid: artwork.artistid,
+        type: "alert",
+        content: `您的作品 "${artwork.title}" 已被退货。`,
+      });
     } catch (error) {
       console.error("退货作品失败:", error);
     }
@@ -197,7 +212,7 @@ function ExhibitionPage() {
                   <DataTable
                     table={{
                       columns: [
-                        { Header: "编号", accessor: "serialnumber" }, // 修改字段为小写
+                        { Header: "编号", accessor: "serialnumber" },
                         {
                           Header: "图片",
                           accessor: "imageurl",
@@ -206,9 +221,17 @@ function ExhibitionPage() {
                           ),
                         },
                         { Header: "标题", accessor: "title" },
-                        { Header: "描述", accessor: "description" },
-                        { Header: "估计价格", accessor: "estimatedprice" }, // 修改字段为小写
                         { Header: "尺寸", accessor: "size" },
+                        {
+                          Header: "出版状态",
+                          accessor: "ispublished",
+                          Cell: ({ value }) => (value ? "已出版" : "未出版"),
+                        },
+                        {
+                          Header: "奖项",
+                          accessor: "awarddetails",
+                          Cell: ({ value }) => (value ? value : "无"),
+                        },
                         {
                           Header: "状态",
                           accessor: "issold",
@@ -219,7 +242,7 @@ function ExhibitionPage() {
                           accessor: "id",
                           Cell: ({ value, row }) => (
                             <>
-                              {!row.original.issold ? ( // 修改字段为小写
+                              {!row.original.issold ? (
                                 <Button
                                   color="primary"
                                   onClick={() => handleOpenDialog(row.original)}
@@ -239,13 +262,13 @@ function ExhibitionPage() {
                         },
                       ],
                       rows: paginatedArtworks.map((artwork) => ({
-                        serialnumber: artwork.serialnumber, // 修改字段为小写
+                        serialnumber: artwork.serialnumber,
                         imageurl: artwork.imageurl,
                         title: artwork.title,
-                        description: artwork.description,
-                        estimatedprice: artwork.estimatedprice, // 修改字段为小写
                         size: artwork.size,
-                        issold: artwork.issold, // 修改字段为小写
+                        ispublished: artwork.ispublished,
+                        awarddetails: artwork.awarddetails,
+                        issold: artwork.issold,
                         id: artwork.id,
                       })),
                     }}

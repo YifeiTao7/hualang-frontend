@@ -98,7 +98,10 @@ function DashboardNavbar({ absolute, light, isMini, onArtistsUpdated }) {
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
   const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
   const handleCloseMenu = () => setOpenMenu(false);
-  const handleOpenNotificationList = () => setOpenNotificationList(true);
+  const handleOpenNotificationList = () => {
+    console.log("Notification list opened");
+    setOpenNotificationList(true);
+  };
   const handleCloseNotificationList = async () => {
     setOpenNotificationList(false);
     try {

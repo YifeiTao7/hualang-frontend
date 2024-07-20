@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { useUser } from "../../context/UserContext";
 
-// @mui material components
+// @mui/material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import IconButton from "@mui/material/IconButton";
@@ -24,6 +25,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import SubmissionForm from "./components/SubmissionForm";
+import ArtistStats from "./components/ArtistStats";
 
 function ArtistTables() {
   const { user } = useUser();
@@ -80,13 +82,15 @@ function ArtistTables() {
     {
       Header: "图片",
       accessor: "imageurl",
-      // eslint-disable-next-line react/prop-types
       Cell: ({ value }) => <img src={value} alt="Artwork" width={50} />,
     },
     { Header: "标题", accessor: "title" },
-    { Header: "预估价格", accessor: "estimatedprice" }, // 确保这里使用正确的小写字段名
-    { Header: "描述", accessor: "description" },
-    { Header: "创建日期", accessor: "creationdate" }, // 使用小写
+    { Header: "题材", accessor: "theme" },
+    {
+      Header: "报酬所得",
+      accessor: "artistPayment",
+      Cell: ({ value }) => (value ? parseFloat(value).toFixed(2) : "0.00"),
+    },
     {
       Header: "售出状态",
       accessor: "issold",
@@ -95,7 +99,6 @@ function ArtistTables() {
     {
       Header: "操作",
       accessor: "id",
-      // eslint-disable-next-line react/prop-types
       Cell: ({ value }) => (
         <IconButton color="error" onClick={() => handleOpenDialog(value)}>
           <DeleteIcon />
@@ -106,13 +109,10 @@ function ArtistTables() {
 
   const rows = artworks.map((artwork) => ({
     title: artwork.title,
-    description: artwork.description,
-    estimatedprice: artwork.estimatedprice, // 使用小写字段名
+    theme: artwork.theme,
     imageurl: artwork.imageurl,
-    creationdate: artwork.creationdate
-      ? new Date(artwork.creationdate).toLocaleString()
-      : "无效日期",
-    issold: artwork.issold, // 新增售出状态字段
+    artistPayment: artwork.issold ? artwork.artistpayment : "0.00",
+    issold: artwork.issold,
     id: artwork.id,
   }));
 
@@ -121,7 +121,10 @@ function ArtistTables() {
       <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
-          <Grid item xs={12}>
+          <Grid item xs={12} md={3}>
+            <ArtistStats />
+          </Grid>
+          <Grid item xs={12} md={9}>
             <Card>
               <MDBox
                 mx={2}

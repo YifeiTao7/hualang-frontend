@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useCallback } from "react";
+import PropTypes from "prop-types";
 import { debounce } from "lodash";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -12,7 +13,6 @@ import DataTable from "examples/Tables/DataTable";
 import axiosInstance from "api/axiosInstance";
 import { useUser } from "context/UserContext";
 import {
-  Avatar,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -41,8 +41,7 @@ function CompanyTables() {
         ),
       },
       { Header: "标题", accessor: "title" },
-      { Header: "描述", accessor: "description" },
-      { Header: "估计价格", accessor: "estimatedprice" },
+      { Header: "题材", accessor: "theme" },
       {
         Header: "售出价格",
         accessor: "saleprice",
@@ -54,6 +53,7 @@ function CompanyTables() {
         },
       },
       { Header: "作者", accessor: "artistname" },
+      { Header: "画家ID", accessor: "artistid" },
       {
         Header: "状态",
         accessor: "issold",
@@ -77,9 +77,7 @@ function CompanyTables() {
         ),
       },
     ]);
-
-    fetchArtworks(searchQuery); // 初始化时获取作品数据
-  }, [searchQuery]);
+  }, []);
 
   const fetchArtworks = async (query) => {
     try {
@@ -93,12 +91,10 @@ function CompanyTables() {
       }
 
       const formattedRows = artworksData.map((artwork) => {
-        const artistId = artwork.artistid;
         return {
           imageurl: artwork.imageurl,
           title: artwork.title,
-          description: artwork.description,
-          estimatedprice: artwork.estimatedprice,
+          theme: artwork.theme,
           saleprice: artwork.issold
             ? artwork.saleprice !== null
               ? artwork.saleprice
@@ -106,9 +102,11 @@ function CompanyTables() {
             : "0",
           issold: artwork.issold,
           artistname: artwork.artistname,
-          artistid: artistId,
+          artistid: artwork.artistid,
           saledate: artwork.saledate,
           id: artwork.id,
+          size: artwork.size,
+          signPrice: artwork.signprice,
         };
       });
       setProjectsRows(formattedRows);
@@ -143,23 +141,22 @@ function CompanyTables() {
 
   const handleSellArtwork = async () => {
     try {
-      if (!selectedArtwork.artistid) {
-        throw new Error("Selected artwork does not have artistid");
-      }
-
       const updatedArtwork = {
         isSold: true,
         salePrice: salePrice || 0,
       };
 
-      await axiosInstance.put(`/artworks/${selectedArtwork.id}`, updatedArtwork);
-      fetchArtworks(searchQuery); // 成功售出后重新获取作品数据
+      const response = await axiosInstance.put(`/artworks/${selectedArtwork.id}`, updatedArtwork);
+      const artistPayment = response.data.artistPayment;
+      fetchArtworks(searchQuery);
 
       await axiosInstance.post(`/notifications`, {
         senderid: user.id,
         receiverid: selectedArtwork.artistid,
         type: "alert",
-        content: `您的作品 "${selectedArtwork.title}" 已被售出，售出价格为 ${salePrice || 0}。`,
+        content: `您的作品 "${
+          selectedArtwork.title
+        }" 已被售出，您获得的金额为 ${artistPayment.toFixed(2)}。`,
       });
 
       handleCloseDialog();
@@ -170,17 +167,13 @@ function CompanyTables() {
 
   const handleReturnArtwork = async (artwork) => {
     try {
-      if (!artwork.artistid) {
-        throw new Error("Artwork does not have artistid");
-      }
-
       const updatedArtwork = {
         isSold: false,
         salePrice: null,
       };
 
       await axiosInstance.put(`/artworks/${artwork.id}`, updatedArtwork);
-      fetchArtworks(searchQuery); // 成功退货后重新获取作品数据
+      fetchArtworks(searchQuery);
 
       await axiosInstance.post(`/notifications`, {
         senderid: user.id,
@@ -259,5 +252,33 @@ function CompanyTables() {
     </DashboardLayout>
   );
 }
+
+CompanyTables.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+  }).isRequired,
+  projectsColumns: PropTypes.arrayOf(
+    PropTypes.shape({
+      Header: PropTypes.string.isRequired,
+      accessor: PropTypes.string.isRequired,
+      Cell: PropTypes.func,
+    })
+  ),
+  projectsRows: PropTypes.arrayOf(
+    PropTypes.shape({
+      imageurl: PropTypes.string,
+      title: PropTypes.string,
+      theme: PropTypes.string,
+      saleprice: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      issold: PropTypes.bool,
+      artistname: PropTypes.string,
+      artistid: PropTypes.number,
+      saledate: PropTypes.string,
+      id: PropTypes.number.isRequired,
+      size: PropTypes.string,
+      signPrice: PropTypes.number,
+    })
+  ),
+};
 
 export default CompanyTables;
