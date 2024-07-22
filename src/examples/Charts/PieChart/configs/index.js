@@ -2,15 +2,21 @@ import colors from "assets/theme/base/colors";
 
 const { gradients, dark } = colors;
 
-// Helper function to generate random colors
-function getRandomColor() {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
+// 定义12个固定颜色
+const fixedColors = [
+  "#FF6384",
+  "#36A2EB",
+  "#FFCE56",
+  "#4BC0C0",
+  "#9966FF",
+  "#FF9F40",
+  "#FFCD56",
+  "#4CAF50",
+  "#F44336",
+  "#2196F3",
+  "#3F51B5",
+  "#E91E63",
+];
 
 function configs(labels, datasets) {
   const backgroundColors = [];
@@ -20,12 +26,12 @@ function configs(labels, datasets) {
       (color) =>
         gradients[color]
           ? backgroundColors.push(gradients[color].state)
-          : backgroundColors.push(getRandomColor()) // 使用随机颜色
+          : backgroundColors.push(fixedColors[backgroundColors.length % fixedColors.length]) // 使用固定颜色
     );
   } else {
-    // 生成与数据长度相等的随机颜色
+    // 使用固定的12个颜色，如果数据超过12个颜色，循环使用
     for (let i = 0; i < datasets.data.length; i++) {
-      backgroundColors.push(getRandomColor());
+      backgroundColors.push(fixedColors[i % fixedColors.length]);
     }
   }
 

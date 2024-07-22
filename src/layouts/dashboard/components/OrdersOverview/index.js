@@ -19,7 +19,7 @@ function ExhibitionSchedule({ companyId }) {
         const response = await axiosInstance.get(`/exhibitions/company/${companyId}`);
         setExhibitions(response.data);
       } catch (error) {
-        console.error("Failed to fetch exhibitions:", error);
+        // 这里我们可以添加错误处理逻辑，例如显示错误消息给用户
       }
     };
 
@@ -38,7 +38,7 @@ function ExhibitionSchedule({ companyId }) {
       );
       setConfirmDelete({ open: false, exhibitionId: null });
     } catch (error) {
-      console.error("Failed to complete exhibition:", error);
+      // 这里我们可以添加错误处理逻辑，例如显示错误消息给用户
     }
   };
 
@@ -129,7 +129,7 @@ function ExhibitionSchedule({ companyId }) {
 }
 
 ExhibitionSchedule.propTypes = {
-  companyId: PropTypes.number.isRequired, // 修改 PropTypes 验证为数字
+  companyId: PropTypes.number.isRequired,
 };
 
 export default ExhibitionSchedule;

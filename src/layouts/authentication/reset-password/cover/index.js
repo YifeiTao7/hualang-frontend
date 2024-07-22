@@ -19,33 +19,31 @@ function ResetPassword() {
 
   const handleRequestReset = async (event) => {
     event.preventDefault();
-    setMessage(""); // 清除之前的消息
+    setMessage("");
     try {
       const response = await axiosInstance.post("/password-reset/request", { email });
       setMessage(response.data.message);
       setStep(2);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "请求重置密码时出错，请稍后再试。";
-      setMessage(errorMessage);
+      setMessage(error.response?.data?.message || "请求重置密码时出错，请稍后再试。");
     }
   };
 
   const handleVerifyCode = async (event) => {
     event.preventDefault();
-    setMessage(""); // 清除之前的消息
+    setMessage("");
     try {
       const response = await axiosInstance.post("/password-reset/verify-code", { email, code });
       setMessage(response.data.message);
       setStep(3);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "验证码验证失败，请检查后重试。";
-      setMessage(errorMessage);
+      setMessage(error.response?.data?.message || "验证码验证失败，请检查后重试。");
     }
   };
 
   const handleResetPassword = async (event) => {
     event.preventDefault();
-    setMessage(""); // 清除之前的消息
+    setMessage("");
     try {
       const response = await axiosInstance.post("/password-reset/reset", {
         email,
@@ -55,8 +53,7 @@ function ResetPassword() {
       setMessage(response.data.message);
       setStep(4);
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "重置密码时出错，请稍后再试。";
-      setMessage(errorMessage);
+      setMessage(error.response?.data?.message || "重置密码时出错，请稍后再试。");
     }
   };
 

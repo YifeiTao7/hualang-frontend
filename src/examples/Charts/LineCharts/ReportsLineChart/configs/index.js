@@ -4,14 +4,14 @@ function configs(labels, datasets) {
       labels,
       datasets: datasets.map((dataset) => ({
         label: dataset.label,
-        tension: 0,
+        tension: 0.4,
         pointRadius: 5,
         pointBorderColor: "transparent",
         pointBackgroundColor: "rgba(255, 255, 255, .8)",
-        borderColor: dataset.borderColor || "rgba(255, 255, 255, .8)",
-        borderWidth: 4,
-        backgroundColor: dataset.backgroundColor || "transparent",
-        fill: true,
+        borderColor: dataset.borderColor,
+        borderWidth: 3,
+        backgroundColor: dataset.backgroundColor,
+        fill: false,
         data: dataset.data,
         maxBarThickness: 6,
       })),
@@ -21,7 +21,23 @@ function configs(labels, datasets) {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false,
+          display: false, // 禁用图例显示
+        },
+        tooltip: {
+          callbacks: {
+            label: function (tooltipItem) {
+              return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+            },
+          },
+          bodyFont: {
+            family: "Roboto",
+            size: 14,
+            weight: 300,
+            style: "normal",
+          },
+          bodyColor: "#ffffff", // 设置提示框文字颜色为白色
+          titleColor: "#ffffff",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
         },
       },
       interaction: {

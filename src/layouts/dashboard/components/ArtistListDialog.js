@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { debounce } from "lodash";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "api/axiosInstance";
 import { useUser } from "context/UserContext";
 import {
   Dialog,
@@ -41,10 +41,9 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
       if (searchValue) {
         try {
           const response = await axiosInstance.get(`/artists/search?name=${searchValue}`);
-          console.log("Fetched artists:", response.data);
           setArtists(response.data);
         } catch (error) {
-          console.error("Failed to fetch artists:", error);
+          // 错误处理逻辑
         }
       } else {
         setArtists([]);
@@ -55,38 +54,30 @@ function ArtistListDialog({ open, onClose, onAdd, children }) {
 
   const handleSearchChange = (e) => {
     const searchValue = e.target.value;
-    console.log("Search value:", searchValue);
     setSearch(searchValue);
     debounceSearch(searchValue);
   };
 
   const handleSendInvite = async (artist) => {
-    console.log("User object:", user); // 打印 user 对象
-    console.log("Artist object:", artist); // 打印 artist 对象
-
     if (!user || !user.id) {
-      console.error("User ID is missing");
       return;
     }
 
     try {
-      console.log("Sending invite to artist:", artist);
-      const response = await axiosInstance.post("/notifications", {
+      await axiosInstance.post("/notifications", {
         senderid: user.id,
         receiverid: artist.userid,
         type: "invitation",
         content: `您有一条新的邀请来自 ${user.name}`,
       });
-      console.log("Invite response:", response.data);
       setSnackbarMessage(`已发送邀请给 ${artist.name}`);
       setSnackbarOpen(true);
     } catch (error) {
-      console.error("Failed to send invitation:", error);
+      // 错误处理逻辑
     }
   };
 
   const handleViewProfile = (artistuserid) => {
-    console.log("Navigating to artist profile with userid:", artistuserid);
     setSelectedArtistId(artistuserid);
     setProfileDialogOpen(true);
   };

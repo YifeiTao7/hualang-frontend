@@ -40,15 +40,10 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     closeMenu();
   };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
+  const handleDialogClose = () => setDialogOpen(false);
+  const handleUnbindDialogClose = () => setUnbindDialogOpen(false);
 
-  const handleUnbindDialogClose = () => {
-    setUnbindDialogOpen(false);
-  };
-
-  const handleArtistAdd = (artist) => {
+  const handleArtistAdd = () => {
     setDialogOpen(false);
     onArtistsUpdated();
   };
@@ -59,7 +54,7 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
       await axiosInstance.delete(`/companies/unbind-artist/${user.id}/${artistId}`);
       onArtistsUpdated();
     } catch (error) {
-      console.error("Failed to unbind artist:", error);
+      // 错误处理逻辑
     }
   };
 
@@ -97,19 +92,12 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     if (editedArtist) {
       try {
         await axiosInstance.put(`/artists/${editedArtist.userid}`, {
-          name: editedArtist.name,
-          phone: editedArtist.phone,
-          address: editedArtist.address,
-          weChat: editedArtist.wechat,
-          qq: editedArtist.qq,
-          companyId: editedArtist.companyid, // 确保传递公司ID
+          ...editedArtist,
           exhibitionsHeld: newExhibitionsHeld || editedArtist.exhibitionsheld,
-          signPrice: editedArtist.signprice,
-          bio: editedArtist.bio,
         });
         onArtistsUpdated();
       } catch (error) {
-        console.error("Failed to update exhibitions held:", error);
+        // 错误处理逻辑
       } finally {
         setEditedArtist(null);
         setNewExhibitionsHeld("");
@@ -131,19 +119,12 @@ function Projects({ title, initialArtists, onArtistsUpdated }) {
     if (editedArtist) {
       try {
         await axiosInstance.put(`/artists/${editedArtist.userid}`, {
-          name: editedArtist.name,
-          phone: editedArtist.phone,
-          address: editedArtist.address,
-          weChat: editedArtist.wechat,
-          qq: editedArtist.qq,
-          companyId: editedArtist.companyid,
-          exhibitionsHeld: editedArtist.exhibitionsheld,
+          ...editedArtist,
           signPrice: newSignPrice || editedArtist.signprice,
-          bio: editedArtist.bio,
         });
         onArtistsUpdated();
       } catch (error) {
-        console.error("Failed to update sign price:", error);
+        // 错误处理逻辑
       } finally {
         setEditedArtist(null);
         setNewSignPrice("");
@@ -324,7 +305,7 @@ Projects.propTypes = {
       name: PropTypes.string.isRequired,
       artworkscount: PropTypes.number.isRequired,
       exhibitionsheld: PropTypes.number.isRequired,
-      signprice: PropTypes.number, // 添加 signPrice 的 propType
+      signprice: PropTypes.number,
       userid: PropTypes.number.isRequired,
     })
   ).isRequired,

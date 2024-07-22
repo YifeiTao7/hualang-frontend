@@ -23,10 +23,9 @@ function UnbindArtistDialog({ open, onClose, onUnbind, artists }) {
 
   const handleUnbind = () => {
     if (selectedArtistId) {
+      const selectedArtist = artists.find((artist) => artist.userid === selectedArtistId);
       onUnbind(selectedArtistId);
-      setSnackbarMessage(
-        `已解约画家 ${artists.find((artist) => artist.userid === selectedArtistId).name}`
-      );
+      setSnackbarMessage(`已解约画家 ${selectedArtist.name}`);
       setSnackbarOpen(true);
       setSelectedArtistId(null);
     }

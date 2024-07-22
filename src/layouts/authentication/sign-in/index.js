@@ -1,25 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
 import { useUser } from "context/UserContext";
+import useSubmitData from "hooks/useSubmitData";
 
 // @mui material components
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
-import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
-
-// @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-import MDAlert from "components/MDAlert"; // 导入 MDAlert 组件
+import MDAlert from "components/MDAlert";
 
 // Authentication layout components
 import BasicLayout from "layouts/authentication/components/BasicLayout";
@@ -27,51 +20,46 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/qianli.jpg";
 
-function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false); // 定义 rememberMe 状态变量
-  const [error, setError] = useState(""); // 定义 error 状态变量
-  const [loading, setLoading] = useState(false); // 定义 loading 状态变量
+const useForm = (initialValues) => {
+  const [values, setValues] = useState(initialValues);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setValues({
+      ...values,
+      [name]: value,
+    });
+  };
+
+  return [values, handleChange];
+};
+
+const SignIn = () => {
+  const [formValues, handleFormChange] = useForm({ email: "", password: "" });
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const { login } = useUser();
+
+  const { loading, error, success, submitData } = useSubmitData("/auth/login");
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const handleLogin = async (event) => {
     event.preventDefault();
-    setError("");
-    setLoading(true);
 
-    try {
-      const response = await axiosInstance.post("/auth/login", { email, password });
-      const { token, user } = response.data; // 假设后端返回完整的用户数据
+    const response = await submitData(formValues);
+
+    if (response) {
+      const { token, user } = response;
 
       // 保存token
-      if (rememberMe) {
-        localStorage.setItem("token", token);
-      } else {
-        sessionStorage.setItem("token", token);
-      }
+      rememberMe ? localStorage.setItem("token", token) : sessionStorage.setItem("token", token);
 
       // 保存用户信息
       login(user);
 
       // 根据角色进行重定向
-      if (user.role === "artist") {
-        navigate("/profile");
-      } else if (user.role === "company") {
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setError("登录失败，邮箱或密码错误。");
-      } else {
-        setError("登录失败，请稍后再试。");
-      }
-      console.error("Login failed:", error);
-    } finally {
-      setLoading(false);
+      navigate(user.role === "artist" ? "/profile" : "/dashboard");
     }
   };
 
@@ -100,9 +88,10 @@ function SignIn() {
                 type="email"
                 label="邮箱"
                 fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                inputProps={{ style: { fontSize: 14 } }} // 调小输入框的字体大小
+                name="email"
+                value={formValues.email}
+                onChange={handleFormChange}
+                inputProps={{ style: { fontSize: 14 } }}
               />
             </MDBox>
             <MDBox mb={2}>
@@ -110,9 +99,10 @@ function SignIn() {
                 type="password"
                 label="密码"
                 fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                inputProps={{ style: { fontSize: 14 } }} // 调小输入框的字体大小
+                name="password"
+                value={formValues.password}
+                onChange={handleFormChange}
+                inputProps={{ style: { fontSize: 14 } }}
               />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
@@ -131,6 +121,13 @@ function SignIn() {
               <MDBox mt={2} mb={2}>
                 <MDAlert color="error" sx={{ fontSize: 14 }}>
                   {error}
+                </MDAlert>
+              </MDBox>
+            )}
+            {success && (
+              <MDBox mt={2} mb={2}>
+                <MDAlert color="success" sx={{ fontSize: 14 }}>
+                  登录成功！
                 </MDAlert>
               </MDBox>
             )}
@@ -172,6 +169,6 @@ function SignIn() {
       </Card>
     </BasicLayout>
   );
-}
+};
 
 export default SignIn;

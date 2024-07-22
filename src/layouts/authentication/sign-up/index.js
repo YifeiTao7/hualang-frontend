@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
 import Card from "@mui/material/Card";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -12,13 +11,14 @@ import MDButton from "components/MDButton";
 import MDAlert from "components/MDAlert";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/s591529137db2e.jpg";
+import useSubmitData from "hooks/useSubmitData";
 
 const CustomSelect = styled(Select)(({ theme }) => ({
-  zIndex: 1, // 设置 z-index 为 1
+  zIndex: 1,
   height: "auto",
   padding: "0",
   fontSize: "inherit",
-  position: "relative", // 添加 position 属性
+  position: "relative",
   [theme.breakpoints.down("sm")]: {
     height: "auto",
     padding: "0",
@@ -27,11 +27,11 @@ const CustomSelect = styled(Select)(({ theme }) => ({
 }));
 
 const CustomButton = styled(MDButton)(({ theme }) => ({
-  zIndex: 1, // 设置 z-index 为 1
+  zIndex: 1,
   height: "auto",
   padding: "0",
   fontSize: "inherit",
-  position: "relative", // 添加 position 属性
+  position: "relative",
   [theme.breakpoints.down("sm")]: {
     height: "auto",
     padding: "0",
@@ -44,9 +44,10 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false); // 定义 success 状态变量
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const navigate = useNavigate();
+
+  const { loading, error, success, submitData } = useSubmitData("/auth/register");
 
   const handleRoleChange = (event) => {
     setRole(event.target.value);
@@ -54,19 +55,14 @@ function SignUp() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
-    setError("");
-    setSuccess(false); // 重置 success 状态
 
-    try {
-      await axiosInstance.post("/auth/register", { name, email, password, role });
-      setSuccess(true); // 设置 success 状态为 true
+    const response = await submitData({ name, email, password, role });
+
+    if (response) {
+      setShowSuccessMessage(true);
       setTimeout(() => {
         navigate("/authentication/sign-in");
       }, 3000); // 3秒后跳转到登录页面
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "注册失败，请检查输入的信息。";
-      setError(errorMessage);
-      console.error("Registration failed:", errorMessage);
     }
   };
 
@@ -142,7 +138,7 @@ function SignUp() {
                 </MDAlert>
               </MDBox>
             )}
-            {success && (
+            {showSuccessMessage && (
               <MDBox mt={2} mb={2}>
                 <MDAlert color="success" sx={{ fontSize: 14, zIndex: 1, position: "relative" }}>
                   恭喜您注册成功！3秒后将跳转到登录页面。
@@ -150,8 +146,14 @@ function SignUp() {
               </MDBox>
             )}
             <MDBox mt={4} mb={1}>
-              <CustomButton type="submit" variant="gradient" color="info" fullWidth>
-                注册
+              <CustomButton
+                type="submit"
+                variant="gradient"
+                color="info"
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? "注册中..." : "注册"}
               </CustomButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
